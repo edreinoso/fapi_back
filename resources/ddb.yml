@@ -1,0 +1,27 @@
+Resources:
+  PlayersTable:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      TableName: player_table_${env:STAGE}
+      Tags:
+        - Key: "Name"
+          Value: player_table_${env:STAGE}
+        - Key: "Environment"
+          Value: ${env:STAGE}
+        - Key: "Project"
+          Value: ucl_fantasy
+        - Key: "Application"
+          Value: player_stats
+        - Key: "Purpose"
+          Value: "Table to keep track of players performance in the tournament"
+        - Key: "Creation_Date"
+          Value: "Mon_Jan_10_22"
