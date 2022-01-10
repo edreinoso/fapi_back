@@ -11,12 +11,12 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
-      TableName: player_table_${env:STAGE}
+      TableName: player_table_${env:environment}
       Tags:
         - Key: "Name"
-          Value: player_table_${env:STAGE}
+          Value: player_table_${env:environment}
         - Key: "Environment"
-          Value: ${env:STAGE}
+          Value: ${env:environment}
         - Key: "Project"
           Value: ucl_fantasy
         - Key: "Application"

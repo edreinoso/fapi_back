@@ -12,9 +12,16 @@
 # Happy Coding!
 
 plugins:
-  - serverless-offline
+  # - serverless-offline-python
+  - serverless-dotenv-plugin
+  - serverless-python-requirements
 
-service: ucl_backend
+	
+custom:
+  pythonRequirements:
+    dockerizePip: non-linux
+
+service: ucl-backend
 # app and org for use with dashboard.serverless.com
 #app: your-app-name
 #org: your-org-name
@@ -27,7 +34,8 @@ provider:
   name: aws
   runtime: python3.8
   region: us-east-1
-  stage: ${env:STAGE}
+  environment:
+    environment: ${env:environment}
 # you can overwrite defaults here
 
 # you can add statements to the Lambda function's IAM Role here
@@ -103,9 +111,9 @@ functions:
 #      variable2: value2
 
 # you can add CloudFormation resource templates here
-resources:
-  # DDB
-  - ${file(resources/ddb.yml)}
+# resources:
+#   # DDB
+#   - ${file(resources/ddb.yml)}
 #resources:
 #  Resources:
 #    NewResource:
