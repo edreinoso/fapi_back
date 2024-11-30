@@ -71,7 +71,7 @@ def csv_table(player_data):
 
     print("CSV file created successfully.")
 
-def get_notion_existing_entries():
+def get_notion_existing_entries(file_path="existing_entries.json"):
     all_entries = []
     has_more = True
     next_cursor = None
@@ -94,8 +94,19 @@ def get_notion_existing_entries():
         for entry in all_entries
     }
 
+    # Write to JSON file
+    write_to_json_file(file_path, existing_entries)
+
     return existing_entries
 
+def write_to_json_file(file_path, data):
+    # Write to JSON file with readable Unicode characters
+    try:
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+        print(f"Existing entries written to {file_path}")
+    except Exception as e:
+        print(f"Error writing to file: {e}")
 if __name__ == "__main__":
     players_data  = get_players_data()
     csv_table(players_data['data']['value']['playerList'])
