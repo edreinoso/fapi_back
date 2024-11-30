@@ -64,7 +64,31 @@ def csv_table(players):
 
     print("CSV file created successfully.")
 
+def notion():
+    # Headers
+    headers = {
+        "Authorization": f"Bearer {NOTION_TOKEN}",
+        "Content-Type": "application/json",
+        "Notion-Version": "2022-06-28",
+    }
+
+    response = requests.post(NOTION_API_URL, headers=headers)
+    notion_data = response.json()
+
+    print(notion_data)
+
+    return
+
+    # Extract the relevant data
+    existing_entries = {
+        entry["properties"]["Name"]["title"][0]["text"]["content"]: entry["id"]
+        for entry in notion_data["results"]
+    }
+
+    print(existing_entries)
+
 if __name__ == "__main__":
     players_data  = get_players_data()
     csv_table(players_data['data']['value']['playerList'])
+    notion()
     
