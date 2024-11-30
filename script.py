@@ -20,17 +20,15 @@ def get_players_data() -> dict:
     conn.request("GET", "/en/uclfantasy/services/feeds/players/players_70_en_6.json")
     res = conn.getresponse()
     data = res.read()
-    players_data = json.loads(data.decode("utf-8"))
-    return players_data
+    data = json.loads(data.decode("utf-8"))
+    
+    cleaned_player_data = []
 
-def csv_table(players):
-    player_data = []
-
-    for player in players:
+    for player in data['data']['value']['playerList']:
         # Transform the skill number to its description
-        skill_description = skill_map.get(player.get('skill', 0), 'unknown')
+        skill_description = skill_map.get(data.get('skill', 0), 'unknown')
 
-        player_data.append({
+        cleaned_player_data.append({
             'name': player.get('pDName', ''),
             'price': player.get('rating', ''),
             'value': player.get('value', ''),
@@ -50,6 +48,9 @@ def csv_table(players):
             'balls recovered': player.get('bR'),
         })
 
+    return cleaned_player_data
+
+def csv_table(player_data):
     # Write to a CSV file
     csv_file_path = 'players3.csv'
 
