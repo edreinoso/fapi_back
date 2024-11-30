@@ -81,7 +81,7 @@ def notion():
 
     # Extract the relevant data
     existing_entries = {
-        entry["properties"]["Name"]["title"][0]["text"]["content"]: entry["id"]
+        entry["properties"]["name"]["title"][0]["text"]["content"]: entry["id"]
         for entry in notion_data["results"]
     }
 
