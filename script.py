@@ -2,7 +2,6 @@ import http.client
 import requests
 import json
 import csv
-# from notion import Notion
 
 notion_token = ''
 notion_page_id = ''
