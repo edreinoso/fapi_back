@@ -22,7 +22,7 @@ headers = {
     "Notion-Version": "2022-06-28",
 }
 
-def get_players_data():
+def get_uefa_players_data():
     conn = http.client.HTTPSConnection("gaming.uefa.com")
     conn.request("GET", "/en/uclfantasy/services/feeds/players/players_70_en_6.json")
     res = conn.getresponse()
@@ -151,11 +151,6 @@ def update_notion_entries(players_data, existing_entries):
                 print(f"Failed to update {player_name}: {response.text}")
 
 if __name__ == "__main__":
-    players_data  = get_players_data()
-    csv_table(players_data['data']['value']['playerList'])
-    notion()
-        existing_entries = get_notion_existing_entries()
-    existing_entries = get_notion_existing_entries()
     uefa_players_data  = get_uefa_players_data()
     # existing_entries = get_notion_existing_entries()
     
