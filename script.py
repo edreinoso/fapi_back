@@ -15,7 +15,14 @@ skill_map = {
     4: "attackers"
 }
 
-def get_players_data() -> dict:
+# Headers
+headers = {
+    "Authorization": f"Bearer {NOTION_TOKEN}",
+    "Content-Type": "application/json",
+    "Notion-Version": "2022-06-28",
+}
+
+def get_players_data():
     conn = http.client.HTTPSConnection("gaming.uefa.com")
     conn.request("GET", "/en/uclfantasy/services/feeds/players/players_70_en_6.json")
     res = conn.getresponse()
@@ -30,7 +37,7 @@ def get_players_data() -> dict:
 
         cleaned_player_data.append({
             'name': player.get('pDName', ''),
-            'price': player.get('rating', ''),
+            'rating': player.get('rating', ''),
             'value': player.get('value', ''),
             'total points': player.get('totPts', ''),
             'goals': player.get('gS', ''),
@@ -55,7 +62,7 @@ def csv_table(player_data):
     csv_file_path = 'players3.csv'
 
     with open(csv_file_path, 'w', newline='', encoding='utf-8') as csvfile:
-        fieldnames = ['name', 'price', 'value', 'total points', 'goals', 'assist', 'minutes played', 'average points', 'isActive', 'team', 'man of match', 'position', 'goals conceded', 'yellow cards', 'red cards', 'penalties earned', 'balls recovered']
+        fieldnames = ['name', 'rating', 'value', 'total points', 'goals', 'assist', 'minutes played', 'average points', 'isActive', 'team', 'man of match', 'position', 'goals conceded', 'yellow cards', 'red cards', 'penalties earned', 'balls recovered']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
         writer.writeheader()
@@ -98,3 +105,4 @@ if __name__ == "__main__":
     csv_table(players_data['data']['value']['playerList'])
     notion()
         existing_entries = get_notion_existing_entries()
+    existing_entries = get_notion_existing_entries()
