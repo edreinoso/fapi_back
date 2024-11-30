@@ -64,18 +64,24 @@ def csv_table(player_data):
 
     print("CSV file created successfully.")
 
-def notion():
-    # Headers
-    headers = {
-        "Authorization": f"Bearer {NOTION_TOKEN}",
-        "Content-Type": "application/json",
-        "Notion-Version": "2022-06-28",
-    }
+def get_notion_existing_entries():
+    all_entries = []
+    has_more = True
+    next_cursor = None
 
-    response = requests.post(NOTION_API_URL, headers=headers)
-    notion_data = response.json()
+    while has_more:
+        payload = {"start_cursor": next_cursor} if next_cursor else {}
+        response = requests.post(NOTION_API_URL, headers=headers, json=payload)
+        if response.status_code == 200:
+            data = response.json()
+            all_entries.extend(data.get("results", []))
+            has_more = data.get("has_more", False)
+            next_cursor = data.get("next_cursor", None)
+        else:
+            print("Failed to fetch entries:", response.text)
+            break
 
-    print(notion_data)
+    return all_entries
 
     return
 
@@ -91,4 +97,4 @@ if __name__ == "__main__":
     players_data  = get_players_data()
     csv_table(players_data['data']['value']['playerList'])
     notion()
-    
+        existing_entries = get_notion_existing_entries()
