@@ -32,7 +32,7 @@ def csv_table(players):
 
         player_data.append({
             'name': player.get('pDName', ''),
-            'rating': player.get('rating', ''),
+            'price': player.get('rating', ''),
             'value': player.get('value', ''),
             'total points': player.get('totPts', ''),
             'goals': player.get('gS', ''),
@@ -54,7 +54,7 @@ def csv_table(players):
     csv_file_path = 'players3.csv'
 
     with open(csv_file_path, 'w', newline='', encoding='utf-8') as csvfile:
-        fieldnames = ['name', 'rating', 'value', 'total points', 'goals', 'assist', 'minutes played', 'average points', 'isActive', 'team', 'man of match', 'position', 'goals conceded', 'yellow cards', 'red cards', 'penalties earned', 'balls recovered']
+        fieldnames = ['name', 'price', 'value', 'total points', 'goals', 'assist', 'minutes played', 'average points', 'isActive', 'team', 'man of match', 'position', 'goals conceded', 'yellow cards', 'red cards', 'penalties earned', 'balls recovered']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
         writer.writeheader()
