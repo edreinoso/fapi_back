@@ -107,9 +107,59 @@ def write_to_json_file(file_path, data):
         print(f"Existing entries written to {file_path}")
     except Exception as e:
         print(f"Error writing to file: {e}")
+
+def update_notion_entries(players_data, existing_entries):
+    # print(existing_entries)
+    for player in players_data:
+        player_name = player["name"]
+        if player_name in existing_entries:
+            page_id = existing_entries[player_name]
+
+            # Prepare update payload
+            data = {
+                "properties": {
+                    "name": {"title": [{"text": {"content": player["name"]}}]},
+                    "rating": {"number": player["rating"]},
+                    "value": {"number": player["value"]},
+                    "total points": {"number": player["total points"]},
+                    "goals": {"number": player["goals"]},
+                    "assist": {"number": player["assist"]},
+                    "minutes played": {"number": player["minutes played"]},
+                    "average points": {"number": player["average points"]},
+                    "isActive": {"number": player["isActive"]},
+                    "team": {"select": {"name": player["team"]}},
+                    "man of match": {"number": player["man of match"]},
+                    "position": {"select": {"name": player["position"]}},
+                    "goals conceded": {"number": player["goals conceded"]},
+                    "yellow cards": {"number": player["yellow cards"]},
+                    "red cards": {"number": player["red cards"]},
+                    "penalties earned": {"number": player["penalties earned"]},
+                    "balls recovered": {"number": player["balls recovered"]},
+                }
+            }
+
+            # Send the PATCH request
+            response = requests.patch(
+                f"https://api.notion.com/v1/pages/{page_id}",
+                headers=headers,
+                json=data
+            )
+
+            if response.status_code == 200:
+                print(f"Updated {player_name} successfully!")
+            else:
+                print(f"Failed to update {player_name}: {response.text}")
+
 if __name__ == "__main__":
     players_data  = get_players_data()
     csv_table(players_data['data']['value']['playerList'])
     notion()
         existing_entries = get_notion_existing_entries()
     existing_entries = get_notion_existing_entries()
+    uefa_players_data  = get_uefa_players_data()
+    # existing_entries = get_notion_existing_entries()
+    
+    with open("existing_entries.json", "r") as f:
+        existing_entries = json.load(f)
+
+    update_notion_entries(uefa_players_data, existing_entries)
