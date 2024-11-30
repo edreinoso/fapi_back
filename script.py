@@ -85,7 +85,7 @@ def notion():
         for entry in notion_data["results"]
     }
 
-    print(existing_entries)
+    return existing_entries
 
 if __name__ == "__main__":
     players_data  = get_players_data()
