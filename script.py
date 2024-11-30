@@ -88,14 +88,10 @@ def get_notion_existing_entries():
             print("Failed to fetch entries:", response.text)
             break
 
-    return all_entries
-
-    return
-
     # Extract the relevant data
     existing_entries = {
         entry["properties"]["name"]["title"][0]["text"]["content"]: entry["id"]
-        for entry in notion_data["results"]
+        for entry in all_entries
     }
 
     return existing_entries
