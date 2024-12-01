@@ -2,10 +2,8 @@ import http.client
 import requests
 import json
 import csv
+from notion import Notion
 
-notion_token = ''
-notion_page_id = ''
-notion_database_id = ''
 
 # Skill mapping
 skill_map = {
@@ -15,12 +13,6 @@ skill_map = {
     4: "attackers"
 }
 
-# Headers
-headers = {
-    "Authorization": f"Bearer {NOTION_TOKEN}",
-    "Content-Type": "application/json",
-    "Notion-Version": "2022-06-28",
-}
 
 def get_uefa_players_data():
     conn = http.client.HTTPSConnection("gaming.uefa.com")
@@ -71,34 +63,6 @@ def csv_table(player_data):
 
     print("CSV file created successfully.")
 
-def get_notion_existing_entries(file_path="existing_entries.json"):
-    all_entries = []
-    has_more = True
-    next_cursor = None
-
-    while has_more:
-        payload = {"start_cursor": next_cursor} if next_cursor else {}
-        response = requests.post(NOTION_API_URL, headers=headers, json=payload)
-        if response.status_code == 200:
-            data = response.json()
-            all_entries.extend(data.get("results", []))
-            has_more = data.get("has_more", False)
-            next_cursor = data.get("next_cursor", None)
-        else:
-            print("Failed to fetch entries:", response.text)
-            break
-
-    # Extract the relevant data
-    existing_entries = {
-        entry["properties"]["name"]["title"][0]["text"]["content"]: entry["id"]
-        for entry in all_entries
-    }
-
-    # Write to JSON file
-    write_to_json_file(file_path, existing_entries)
-
-    return existing_entries
-
 def write_to_json_file(file_path, data):
     # Write to JSON file with readable Unicode characters
     try:
@@ -108,53 +72,19 @@ def write_to_json_file(file_path, data):
     except Exception as e:
         print(f"Error writing to file: {e}")
 
-def update_notion_entries(players_data, existing_entries):
-    # print(existing_entries)
-    for player in players_data:
-        player_name = player["name"]
-        if player_name in existing_entries:
-            page_id = existing_entries[player_name]
-
-            # Prepare update payload
-            data = {
-                "properties": {
-                    "name": {"title": [{"text": {"content": player["name"]}}]},
-                    "rating": {"number": player["rating"]},
-                    "value": {"number": player["value"]},
-                    "total points": {"number": player["total points"]},
-                    "goals": {"number": player["goals"]},
-                    "assist": {"number": player["assist"]},
-                    "minutes played": {"number": player["minutes played"]},
-                    "average points": {"number": player["average points"]},
-                    "isActive": {"number": player["isActive"]},
-                    "team": {"select": {"name": player["team"]}},
-                    "man of match": {"number": player["man of match"]},
-                    "position": {"select": {"name": player["position"]}},
-                    "goals conceded": {"number": player["goals conceded"]},
-                    "yellow cards": {"number": player["yellow cards"]},
-                    "red cards": {"number": player["red cards"]},
-                    "penalties earned": {"number": player["penalties earned"]},
-                    "balls recovered": {"number": player["balls recovered"]},
-                }
-            }
-
-            # Send the PATCH request
-            response = requests.patch(
-                f"https://api.notion.com/v1/pages/{page_id}",
-                headers=headers,
-                json=data
-            )
-
-            if response.status_code == 200:
-                print(f"Updated {player_name} successfully!")
-            else:
-                print(f"Failed to update {player_name}: {response.text}")
-
 if __name__ == "__main__":
+    notion = Notion(requests=requests)
+    
     uefa_players_data  = get_uefa_players_data()
     # existing_entries = get_notion_existing_entries()
     
+    # Writing data to a JSON file
+    # existing_entries = notion.get_notion_existing_entries()
+    # write_to_json_file("existing_entries.json", existing_entries)
+
+    # Reading data from JSON file
+    # I should be getting this file from S3
     with open("existing_entries.json", "r") as f:
         existing_entries = json.load(f)
 
-    update_notion_entries(uefa_players_data, existing_entries)
+    notion.update_notion_entries(uefa_players_data, existing_entries)
