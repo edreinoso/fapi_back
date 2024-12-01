@@ -3,9 +3,9 @@ import boto3
 import requests
 import json
 import csv
-from notion import Notion
 import logging
 import time
+from notion import Notion
 from botocore.exceptions import NoCredentialsError
 
 # Configure logging
@@ -79,9 +79,9 @@ def write_to_json_file(file_path, data):
     try:
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
-        print(f"Existing entries written to {file_path}")
+        logging.info(f"Existing entries written to {file_path}.")
     except Exception as e:
-        print(f"Error writing to file: {e}")
+        logging.error(f"Error writing to file: {e}")
 
 def download_file_from_s3(bucket_name, s3_file_key, local_file_path):
     session = boto3.Session(profile_name='ed')

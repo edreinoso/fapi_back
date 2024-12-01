@@ -22,7 +22,7 @@ class Notion:
 
         while has_more:
             payload = {"start_cursor": next_cursor} if next_cursor else {}
-            response = self.requests.post(NOTION_API_URL, headers=self.headers, json=payload)
+            response = self.request.post(NOTION_API_URL, headers=self.headers, json=payload)
             if response.status_code == 200:
                 data = response.json()
                 all_entries.extend(data.get("results", []))
@@ -75,16 +75,14 @@ class Notion:
                 }
 
                 # Send the PATCH request
-                # response = self.requests.patch(
-                #     f"https://api.notion.com/v1/pages/{page_id}",
-                #     headers=self.headers,
-                #     json=data
-                # )
+                response = self.request.patch(
+                    f"https://api.notion.com/v1/pages/{page_id}",
+                    headers=self.headers,
+                    json=data
+                )
 
-                # if response.status_code == 200:
-                #     print(f"Updated {player_name} successfully!")
-                # else:
-                #     print(f"Failed to update {player_name}: {response.text}")
+                if response.status_code != 200:
+                    self.logging.error(f"Failed to update {player_name}: {response.text}")
 
         end_time = self.time.time()
         self.logging.info(f"Updated Notion players data fetched in {end_time - start_time:.2f} seconds.")
