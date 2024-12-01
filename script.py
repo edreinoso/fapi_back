@@ -3,7 +3,11 @@ import requests
 import json
 import csv
 from notion import Notion
+import logging
+import time
 
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Skill mapping
 skill_map = {
@@ -15,6 +19,8 @@ skill_map = {
 
 
 def get_uefa_players_data():
+    start_time = time.time()
+    logging.info("Fetching players data from UEFA.")
     conn = http.client.HTTPSConnection("gaming.uefa.com")
     conn.request("GET", "/en/uclfantasy/services/feeds/players/players_70_en_6.json")
     res = conn.getresponse()
@@ -46,7 +52,10 @@ def get_uefa_players_data():
             'penalties earned': player.get('pE'),
             'balls recovered': player.get('bR'),
         })
-
+    
+    end_time = time.time()
+    logging.info(f"UEFA players data fetched and cleaned in {end_time - start_time:.2f} seconds.")
+    
     return cleaned_player_data
 
 def csv_table(player_data):
@@ -73,7 +82,7 @@ def write_to_json_file(file_path, data):
         print(f"Error writing to file: {e}")
 
 if __name__ == "__main__":
-    notion = Notion(requests=requests)
+    notion = Notion(requests=requests, logging=logging, time=time)
     
     uefa_players_data  = get_uefa_players_data()
     # existing_entries = get_notion_existing_entries()

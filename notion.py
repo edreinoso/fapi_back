@@ -1,7 +1,9 @@
 
 class Notion:
-    def __init__(self, requests):
+    def __init__(self, requests, time, logging):
         self.request = requests
+        self.logging = logging
+        self.time = time
         self.database_id = NOTION_DATBASE_ID
         self.token = NOTION_TOKEN
         self.api = NOTION_API_URL
@@ -12,6 +14,8 @@ class Notion:
         }
 
     def get_notion_existing_entries(self):
+        start_time = self.time.time()
+        self.logging.info("Fetching players data from Notion.")
         all_entries = []
         has_more = True
         next_cursor = None
@@ -34,10 +38,14 @@ class Notion:
             for entry in all_entries
         }
 
+        end_time = self.time.time()
+        self.logging.info(f"Notion players data fetched in {end_time - start_time:.2f} seconds.")
+
         return existing_entries
     
     def update_notion_entries(self, players_data, existing_entries):
-        # print(existing_entries)
+        start_time = self.time.time()
+        self.logging.info("Updating players data from Notion.")
         for player in players_data:
             player_name = player["name"]
             if player_name in existing_entries:
@@ -66,8 +74,6 @@ class Notion:
                     }
                 }
 
-                print(data,page_id)
-
                 # Send the PATCH request
                 # response = self.requests.patch(
                 #     f"https://api.notion.com/v1/pages/{page_id}",
@@ -79,3 +85,6 @@ class Notion:
                 #     print(f"Updated {player_name} successfully!")
                 # else:
                 #     print(f"Failed to update {player_name}: {response.text}")
+
+        end_time = self.time.time()
+        self.logging.info(f"Updated Notion players data fetched in {end_time - start_time:.2f} seconds.")
