@@ -1,10 +1,12 @@
 import http.client
+import boto3
 import requests
 import json
 import csv
 from notion import Notion
 import logging
 import time
+from botocore.exceptions import NoCredentialsError
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -81,8 +83,25 @@ def write_to_json_file(file_path, data):
     except Exception as e:
         print(f"Error writing to file: {e}")
 
+def download_file_from_s3(bucket_name, s3_file_key, local_file_path):
+    session = boto3.Session(profile_name='ed')
+    s3 = session.client('s3')
+    try:
+        s3.download_file(bucket_name, s3_file_key, local_file_path)
+        logging.info(f"File downloaded from S3 bucket.")
+    except NoCredentialsError:
+        logging.error("Credentials not available.")
+    except Exception as e:
+        logging.error(f"Error downloading file from S3: {e}")
+
 if __name__ == "__main__":
     notion = Notion(requests=requests, logging=logging, time=time)
+
+    # Download existing_entries.json from S3
+    bucket_name = 'ucl-fantasy-data'
+    s3_file_key = 'existing_entries.json'
+    local_file_path = 'existing_entries.json'
+    download_file_from_s3(bucket_name, s3_file_key, local_file_path)
     
     uefa_players_data  = get_uefa_players_data()
     # existing_entries = get_notion_existing_entries()
@@ -92,8 +111,7 @@ if __name__ == "__main__":
     # write_to_json_file("existing_entries.json", existing_entries)
 
     # Reading data from JSON file
-    # I should be getting this file from S3
-    with open("existing_entries.json", "r") as f:
+    with open(local_file_path, "r") as f:
         existing_entries = json.load(f)
 
     notion.update_notion_entries(uefa_players_data, existing_entries)
