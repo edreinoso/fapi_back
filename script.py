@@ -15,55 +15,47 @@ skill_map = {
     4: "attackers"
 }
 
-def get_players_data() -> dict:
-    conn = http.client.HTTPSConnection("gaming.uefa.com")
-    conn.request("GET", "/en/uclfantasy/services/feeds/players/players_70_en_6.json")
-    res = conn.getresponse()
-    data = res.read()
-    players_data = json.loads(data.decode("utf-8"))
-    return players_data
+def transform_players_data(players_data: dict) -> list:
+    list_of_players = []
 
-def csv_table(players):
-    player_data = []
-
-    for player in players:
+    for player in players_data:
         # Transform the skill number to its description
         skill_description = skill_map.get(player.get('skill', 0), 'unknown')
 
-        player_data.append({
+        list_of_players.append({
             'name': player.get('pDName', ''),
-            'rating': player.get('rating', ''),
-            'value': player.get('value', ''),
             'total points': player.get('totPts', ''),
             'goals': player.get('gS', ''),
             'assist': player.get('assist', ''),
-            'minutes played': player.get('minsPlyd', ''),
-            'average points': player.get('avgPlayerPts', ''),
-            'isActive': player.get('isActive', ''),
             'team': player.get('cCode', ''),
-            'man of match': player.get('mOM', ''),
-            'position': skill_description,
-            'goals conceded': player.get('gC'),
-            'yellow cards': player.get('yC'),
-            'red cards': player.get('rC'),
-            'penalties earned': player.get('pE'),
-            'balls recovered': player.get('bR'),
         })
 
+    return list_of_players
+
+def get_players_data() -> list:
+    conn = http.client.HTTPSConnection("gaming.uefa.com")
+    conn.request("GET", "/en/uclfantasy/services/feeds/players/players_70_en_8.json")
+    res = conn.getresponse()
+    data = res.read()
+    players_data = json.loads(data.decode("utf-8"))
+    list_of_players = transform_players_data(players_data['data']['value']['playerList'])
+    return list_of_players
+
+def csv_table(list_of_players):
     # Write to a CSV file
-    csv_file_path = 'players3.csv'
+    csv_file_path = 'mbappe.csv'
 
     with open(csv_file_path, 'w', newline='', encoding='utf-8') as csvfile:
-        fieldnames = ['name', 'rating', 'value', 'total points', 'goals', 'assist', 'minutes played', 'average points', 'isActive', 'team', 'man of match', 'position', 'goals conceded', 'yellow cards', 'red cards', 'penalties earned', 'balls recovered']
+        fieldnames = ['name', 'total points', 'goals', 'assist', 'team']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
         writer.writeheader()
-        for player in player_data:
+        for player in list_of_players:
             writer.writerow(player)
 
     print("CSV file created successfully.")
 
 if __name__ == "__main__":
-    players_data  = get_players_data()
-    csv_table(players_data['data']['value']['playerList'])
+    players_data  = get_players_data() # list of players
+    csv_table(players_data)
     
