@@ -61,18 +61,41 @@ def csv_table(list_of_players):
 
 # this function is simply writing one entry to the ddb table
 # it has the potential to be expanded to write other patterns
-def write_to_ddb(player_data):
-    for player in player_data:
-        table.put_item(
-            Item={
-                'PK': f'PLAYER#${player['name']}',
-                'SK': 'TOTALS',
-                'goals': player['goals'],
-                'assists': player['assist'],
-                'team': player['team'],
-                'points': player['total points'],
-            }
-        )
+def write_to_ddb_player_total_score(player_name, player_id, player_goals, player_assists, team, position):
+    table.put_item(
+        Item={
+            'PK': f'PLAYER#${player_name}',
+            'SK': 'TOTALS',
+            'player_id': player_id,
+            'goals': player_goals,
+            'assists': player_assists,
+            'team': team,
+            'position': position
+        }
+    )
+
+def write_to_ddb_match_player(player_name, match_id, player_goals, player_assists):
+    table.put_item(
+        Item={
+            'PK': f'PLAYER#${player_name}',
+            'SK': f'MATCH#${match_id}',
+            'match_id': match_id,
+            'goals': player_goals,
+            'assists': player_assists
+        }
+    )
+
+def write_to_ddb_match_data(player_name, match_id, player_goals, player_assists, position):
+    table.put_item(
+        Item={
+            'PK': f'MATCH#${match_id}',
+            'SK': f'PLAYER${player_name}',
+            'match_id': match_id,
+            'goals': player_goals,
+            'assists': player_assists,
+            'position': position
+        }
+    )
 
 if __name__ == "__main__":
     players_data  = get_players_data() # list of players
