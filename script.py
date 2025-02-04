@@ -4,8 +4,8 @@ import csv
 import boto3
 # from notion import Notion
 
-dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table('manual-fapi-ddb')
+# Initialize the handler
+ddb_handler = DynamoDBHandler('manual-fapi-ddb')
 
 notion_token = ''
 notion_page_id = ''
@@ -26,19 +26,21 @@ def transform_players_data(players_data: dict) -> list:
         # Transform the skill number to its description
         skill_description = skill_map.get(player.get('skill', 0), 'unknown')
 
-        list_of_players.append({
-            'name': player.get('pDName', ''),
-            'total points': player.get('totPts', ''),
-            'goals': player.get('gS', ''),
-            'assist': player.get('assist', ''),
-            'team': player.get('cCode', ''),
-        })
+        if player.get('pDName', '') == 'K. Mbappé':
+            list_of_players.append({
+                'id': player.get('id', ''),
+                'name': player.get('pDName', ''),
+                'goals': player.get('gS', ''),
+                'assist': player.get('assist', ''),
+                'team': player.get('cCode', ''),
+                'position': skill_description
+            })
 
     return list_of_players
 
 def get_players_data() -> list:
     conn = http.client.HTTPSConnection("gaming.uefa.com")
-    conn.request("GET", "/en/uclfantasy/services/feeds/players/players_70_en_8.json")
+    conn.request("GET", "/en/uclfantasy/services/feeds/players/players_70_en_9.json")
     res = conn.getresponse()
     data = res.read()
     players_data = json.loads(data.decode("utf-8"))
@@ -50,7 +52,7 @@ def csv_table(list_of_players):
     csv_file_path = 'mbappe.csv'
 
     with open(csv_file_path, 'w', newline='', encoding='utf-8') as csvfile:
-        fieldnames = ['name', 'total points', 'goals', 'assist', 'team']
+        fieldnames = ['name', 'id', 'total points', 'goals', 'assist', 'team']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
         writer.writeheader()
