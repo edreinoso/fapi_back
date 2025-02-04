@@ -2,6 +2,7 @@ import http.client
 import json
 import csv
 import boto3
+from dynamo_handler import DynamoDBHandler
 # from notion import Notion
 
 # Initialize the handler
@@ -77,7 +78,21 @@ def get_individual_match_player_data(player_data):
             ddb_handler.write_match_player(player['name'], fixtures[matches]['mId'], stats_from_fixtures[matches]['gS'], stats_from_fixtures[matches]['gA'])
             ddb_handler.write_match_data(player['name'], fixtures[matches]['mId'], stats_from_fixtures[matches]['gS'], stats_from_fixtures[matches]['gA'], player['position'])
 
+
+def store_player_in_ddb(players: list):
+    """Writes transformed player data to DynamoDB."""
+    for player in players:
+        ddb_handler.write_player_total_score(
+            player['name'], 
+            player['id'], 
+            player['goals'], 
+            player['assist'], 
+            player['team'], 
+            player['position']
+        )
+
 if __name__ == "__main__":
     players_data  = get_players_data() # list of players
+    store_player_in_ddb(players_data)
     get_individual_match_player_data(players_data)
     
