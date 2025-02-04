@@ -61,9 +61,23 @@ def csv_table(list_of_players):
 
     print("CSV file created successfully.")
 
+def get_individual_match_player_data(player_data):
+    print(player_data)
+    for player in player_data:
+        conn = http.client.HTTPSConnection("gaming.uefa.com")
+        conn.request("GET", f"/en/uclfantasy/services/feeds/popupstats/popupstats_70_{player['id']}.json")
+        res = conn.getresponse()
+        data = res.read()
+        players_data_per_match = json.loads(data.decode("utf-8"))
+        fixtures = players_data_per_match['data']['value']['fixtures']
+        stats_from_fixtures = players_data_per_match['data']['value']['stats']
+
+        for matches in range(0,len(fixtures)):
+            print(f'{player['name']} facts - match id: {fixtures[matches]['mId']}, goals: {stats_from_fixtures[matches]['gS']}, assists: {stats_from_fixtures[matches]['gA']}')
+            ddb_handler.write_match_player(player['name'], fixtures[matches]['mId'], stats_from_fixtures[matches]['gS'], stats_from_fixtures[matches]['gA'])
+            ddb_handler.write_match_data(player['name'], fixtures[matches]['mId'], stats_from_fixtures[matches]['gS'], stats_from_fixtures[matches]['gA'], player['position'])
 
 if __name__ == "__main__":
     players_data  = get_players_data() # list of players
-    csv_table(players_data)
-    write_to_ddb(players_data) # write data to ddb
+    get_individual_match_player_data(players_data)
     
