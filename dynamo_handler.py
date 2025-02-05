@@ -1,4 +1,5 @@
 import boto3
+from boto3.dynamodb.conditions import Key
 
 class DynamoDBHandler:
     def __init__(self, table_name: str):
@@ -44,3 +45,11 @@ class DynamoDBHandler:
                 'position': position
             }
         )
+    
+    def query_player_data(self, player_name):
+        """Query DynamoDB for a player's data."""
+        response = self.table.query(
+            KeyConditionExpression=Key('PK').eq(f'PLAYER#{player_name}'),
+            ProjectionExpression='goals'
+        )
+        return response['Items']
