@@ -1,8 +1,9 @@
 import http.client
 import json
 import csv
-import boto3
 from dynamo_handler import DynamoDBHandler
+import matplotlib.pyplot as plt
+import numpy as np
 # from notion import Notion
 
 # Initialize the handler
@@ -87,6 +88,26 @@ def get_individual_match_player_data(player_data):
             ddb_handler.write_match_player(player['name'], match_id, goals_scored, assists, match_date)
             ddb_handler.write_match_data(player['name'], match_id, goals_scored, assists, player['position'], match_date)
 
+def visualize_data_in_matplotlib(player_stats: list, player_name: str):
+    # Extracting the goals
+    goals = [int(d['goals']) for d in player_stats]
+
+    # Match numbers (assuming matches are in order)
+    matches = np.arange(1, len(goals) + 1)
+
+    # Plot the graph
+    plt.figure(figsize=(10, 5))
+    plt.plot(matches, goals, marker='o', linestyle='-', color='b', label="Goals per match")
+    plt.xlabel("Match Number")
+    plt.ylabel("Goals")
+    plt.title(f"{player_name} Goals Per Match")
+    plt.xticks(matches)  # Ensure each match is labeled
+    plt.yticks(range(max(goals) + 1))  # Show all goal count possibilities
+    plt.legend()
+    plt.grid(True)
+
+    # Show the plot
+    plt.show()
 
 def read_player_from_ddb(player):
     pass
@@ -104,7 +125,12 @@ def store_player_in_ddb(players: list):
         )
 
 if __name__ == "__main__":
+    """Put items in ddb database"""
     players_data  = get_players_data() # list of players
     store_player_in_ddb(players_data)
     get_individual_match_player_data(players_data)
     
+    """Query items in ddb database"""
+    player_stats = ddb_handler.query_player_data('K. Mbappé', 'goals')
+    print(player_stats)
+    visualize_data_in_matplotlib(player_stats, 'K. Mbappé')

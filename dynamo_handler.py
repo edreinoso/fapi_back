@@ -48,10 +48,10 @@ class DynamoDBHandler:
             }
         )
     
-    def query_player_data(self, player_name):
+    def query_player_data(self, player_name, attributes):
         """Query DynamoDB for a player's data."""
         response = self.table.query(
             KeyConditionExpression=Key('PK').eq(f'PLAYER#{player_name}'),
-            ProjectionExpression='goals'
+            ProjectionExpression=attributes
         )
         return response['Items']
