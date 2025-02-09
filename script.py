@@ -63,6 +63,9 @@ def csv_table(list_of_players):
 
     print("CSV file created successfully.")
 
+def transform_date(source_date):
+    return datetime.strptime(source_date, "%m/%d/%y %I:%M:%S %p").strftime("%Y-%m-%d")
+
 def get_individual_match_player_data(player_data):
     print(player_data)
     for player in player_data:
@@ -72,12 +75,18 @@ def get_individual_match_player_data(player_data):
         data = res.read()
         players_data_per_match = json.loads(data.decode("utf-8"))
         fixtures = players_data_per_match['data']['value']['fixtures']
-        stats_from_fixtures = players_data_per_match['data']['value']['stats']
+        stats = players_data_per_match['data']['value']['stats']
 
         for matches in range(0,len(fixtures)):
-            print(f'{player['name']} facts - match id: {fixtures[matches]['mId']}, goals: {stats_from_fixtures[matches]['gS']}, assists: {stats_from_fixtures[matches]['gA']}')
-            ddb_handler.write_match_player(player['name'], fixtures[matches]['mId'], stats_from_fixtures[matches]['gS'], stats_from_fixtures[matches]['gA'])
-            ddb_handler.write_match_data(player['name'], fixtures[matches]['mId'], stats_from_fixtures[matches]['gS'], stats_from_fixtures[matches]['gA'], player['position'])
+            match_id = fixtures[matches]['mId']
+            goals_scored = stats[matches]['gS']
+            assists = stats[matches]['gA']
+            match_date = transform_date(fixtures[matches]['dateTime'])
+            
+            print(f'{player['name']} facts - match id: {match_id}, goals: {goals_scored}, assists: {assists}, dateTime: {match_date}')
+            
+            ddb_handler.write_match_player(player['name'], match_id, goals_scored, assists, match_date)
+            ddb_handler.write_match_data(player['name'], match_id, goals_scored, assists, player['position'], match_date)
 
 def visualize_data_in_matplotlib(player_stats: list, player_name: str):
     # Extracting the goals
@@ -100,6 +109,9 @@ def visualize_data_in_matplotlib(player_stats: list, player_name: str):
     # Show the plot
     plt.show()
 
+def read_player_from_ddb(player):
+    pass
+
 def store_player_in_ddb(players: list):
     """Writes transformed player data to DynamoDB."""
     for player in players:
@@ -113,10 +125,10 @@ def store_player_in_ddb(players: list):
         )
 
 if __name__ == "__main__":
+    """Put items in ddb database"""
     players_data  = get_players_data() # list of players
     store_player_in_ddb(players_data)
     get_individual_match_player_data(players_data)
-        """Put items in ddb database"""
     
     """Query items in ddb database"""
     player_stats = ddb_handler.query_player_data('K. Mbappé', 'goals')

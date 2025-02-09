@@ -1,5 +1,5 @@
 import boto3
-from boto3.dynamodb.conditions import Key
+from boto3.dynamodb.conditions import Key, Attr
 
 class DynamoDBHandler:
     def __init__(self, table_name: str):
@@ -21,28 +21,30 @@ class DynamoDBHandler:
             }
         )
 
-    def write_match_player(self, player_name, match_id, player_goals, player_assists):
+    def write_match_player(self, player_name, match_id, player_goals, player_assists, date_time):
         """Writes an individual player's match stats."""
         self.table.put_item(
             Item={
                 'PK': f'PLAYER#{player_name}',
-                'SK': f'MATCH#{match_id}',
+                'SK': f'MATCH#{date_time}#{match_id}',
                 'match_id': match_id,
                 'goals': player_goals,
-                'assists': player_assists
+                'assists': player_assists,
+                'match_date': date_time
             }
         )
 
-    def write_match_data(self, player_name, match_id, player_goals, player_assists, position):
+    def write_match_data(self, player_name, match_id, player_goals, player_assists, position, date_time):
         """Writes match data including position info."""
         self.table.put_item(
             Item={
-                'PK': f'MATCH#{match_id}',
+                'PK': f'MATCH#{date_time}#{match_id}',
                 'SK': f'PLAYER#{player_name}',
                 'match_id': match_id,
                 'goals': player_goals,
                 'assists': player_assists,
-                'position': position
+                'position': position,
+                'match_date': date_time
             }
         )
     
