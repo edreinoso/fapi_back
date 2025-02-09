@@ -129,7 +129,6 @@ if __name__ == "__main__":
     players_data  = get_players_data() # list of players
     store_player_in_ddb(players_data)
     get_individual_match_player_data(players_data)
-    
     """Query items in ddb database"""
     player_stats = ddb_handler.query_player_data('K. Mbappé', 'goals')
     print(player_stats)
