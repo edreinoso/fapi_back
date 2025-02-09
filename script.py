@@ -129,7 +129,16 @@ if __name__ == "__main__":
     players_data  = get_players_data() # list of players
     store_player_in_ddb(players_data)
     get_individual_match_player_data(players_data)
+    
     """Query items in ddb database"""
-    player_stats = ddb_handler.query_player_data('K. Mbappé', 'goals')
+    # 🌟 Welcoming message
+    print("\n⚽ Welcome to the UEFA Fantasy Data Explorer! ⚽")
+    print("You can retrieve stats for any player!\n")
+
+    # 📝 User input for player name and attribute
+    player_name = input("Enter the player's name: ").strip()
+    attribute = input("Enter the attribute to retrieve (e.g., goals, assists, points): ").strip()
+
+    player_stats = ddb_handler.query_player_data(player_name, attribute)
     print(player_stats)
-    visualize_data_in_matplotlib(player_stats, 'K. Mbappé')
+    visualize_data_in_matplotlib(player_stats, player_name)
