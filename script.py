@@ -1,6 +1,7 @@
 import http.client
 import json
 import csv
+from datetime import datetime
 from dynamo_handler import DynamoDBHandler
 import matplotlib.pyplot as plt
 import numpy as np
@@ -28,10 +29,10 @@ def transform_players_data(players_data: dict) -> list:
         # Transform the skill number to its description
         skill_description = skill_map.get(player.get('skill', 0), 'unknown')
 
-        if player.get('pDName', '') == 'K. Mbappé':
+        if player.get('pDName', '') == 'K. Mbappé' or player.get('pDName', '') == 'Rodrygo':
             list_of_players.append({
                 'id': player.get('id', ''),
-                'name': player.get('pDName', ''),
+                'name': player.get('pDName', '').lower(),
                 'goals': player.get('gS', ''),
                 'assist': player.get('assist', ''),
                 'team': player.get('cCode', ''),
@@ -88,29 +89,35 @@ def get_individual_match_player_data(player_data):
             ddb_handler.write_match_player(player['name'], match_id, goals_scored, assists, match_date)
             ddb_handler.write_match_data(player['name'], match_id, goals_scored, assists, player['position'], match_date)
 
-def visualize_data_in_matplotlib(player_stats: list, player_name: str):
-    # Extracting the goals
-    goals = [int(d['goals']) for d in player_stats]
-
-    # Match numbers (assuming matches are in order)
-    matches = np.arange(1, len(goals) + 1)
-
-    # Plot the graph
+def visualize_data_in_matplotlib(player_data: dict, attribute: str):
     plt.figure(figsize=(10, 5))
-    plt.plot(matches, goals, marker='o', linestyle='-', color='b', label="Goals per match")
-    plt.xlabel("Match Number")
-    plt.ylabel("Goals")
-    plt.title(f"{player_name} Goals Per Match")
-    plt.xticks(matches)  # Ensure each match is labeled
-    plt.yticks(range(max(goals) + 1))  # Show all goal count possibilities
+
+    for player_name, player_stats in player_data.items():
+        if not player_stats:
+            continue  # Skip players with no data
+
+        values = [int(d[attribute]) for d in player_stats]
+
+        matches = np.arange(1, len(values) + 1)
+        plt.plot(matches, values, marker='o', linestyle='-', label=f"{player_name}")
+
+    plt.xlabel("Match Round")
+    plt.ylabel(attribute.capitalize())  # Dynamic label based on chosen attribute
+    plt.title(f"{attribute.capitalize()} Per Match Comparison")
+    plt.xticks(matches)
     plt.legend()
     plt.grid(True)
 
-    # Show the plot
     plt.show()
 
-def read_player_from_ddb(player):
-    pass
+def read_player_from_ddb(player_names: dict, attribute: str) -> dict:
+    player_data = {}
+
+    for name in player_names:
+        response = ddb_handler.query_player_data(name, attribute)
+        player_data[name] = response
+
+    return player_data
 
 def store_player_in_ddb(players: list):
     """Writes transformed player data to DynamoDB."""
@@ -136,9 +143,14 @@ if __name__ == "__main__":
     print("You can retrieve stats for any player!\n")
 
     # 📝 User input for player name and attribute
-    player_name = input("Enter the player's name: ").strip()
+    player_name = input("Enter player names (comma-separated): ").strip().split(',')
     attribute = input("Enter the attribute to retrieve (e.g., goals, assists, points): ").strip()
 
-    player_stats = ddb_handler.query_player_data(player_name, attribute)
-    print(player_stats)
-    visualize_data_in_matplotlib(player_stats, player_name)
+    data = read_player_from_ddb(player_name, attribute)
+
+    # print(data)
+
+    if data:
+        visualize_data_in_matplotlib(data, attribute)  # Pass the dictionary to the function
+    else:
+        print("No data found for the given players.")
