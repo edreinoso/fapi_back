@@ -133,9 +133,9 @@ def store_player_in_ddb(players: list):
 
 if __name__ == "__main__":
     """Put items in ddb database"""
-    players_data  = get_players_data() # list of players
+    """players_data  = get_players_data() # list of players
     store_player_in_ddb(players_data)
-    get_individual_match_player_data(players_data)
+    get_individual_match_player_data(players_data)"""
     
     """Query items in ddb database"""
     # 🌟 Welcoming message
