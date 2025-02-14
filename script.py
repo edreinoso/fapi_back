@@ -1,7 +1,7 @@
 import http.client
 import json
 import csv
-from datetime import datetime
+from datetime import datetime, timezone
 from dynamo_handler import DynamoDBHandler
 import matplotlib.pyplot as plt
 import numpy as np
@@ -119,9 +119,11 @@ def visualize_data_in_matplotlib(player_data: dict, attributes: str):
 
 def read_player_from_ddb(player_names: dict, attribute: str) -> dict:
     player_data = {}
+    today = datetime.now(timezone.utc).strftime('%Y-%m-%d')  # Get today's date in YYYY-MM-DD format
+
 
     for name in player_names:
-        response = ddb_handler.query_player_data(name, attribute)
+        response = ddb_handler.query_player_data(name, attribute, today)
         player_data[name] = response
 
     return player_data
