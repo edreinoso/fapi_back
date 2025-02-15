@@ -10,9 +10,6 @@ import numpy as np
 # Initialize the handler
 ddb_handler = DynamoDBHandler('manual-fapi-ddb')
 
-notion_token = ''
-notion_page_id = ''
-notion_database_id = ''
 
 # Skill mapping
 skill_map = {
