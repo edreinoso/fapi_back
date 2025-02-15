@@ -48,10 +48,11 @@ class DynamoDBHandler:
             }
         )
     
-    def query_player_data(self, player_name, attributes):
+    def query_player_data(self, player_name, attributes, date_condition):
         """Query DynamoDB for a player's data."""
         response = self.table.query(
             KeyConditionExpression=Key('PK').eq(f'PLAYER#{player_name}') & Key('SK').begins_with('MATCH#'),
+            FilterExpression=Key('match_date').lt(date_condition),  # Only retrieve past matches
             ProjectionExpression=attributes
         )
         return response['Items']
