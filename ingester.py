@@ -3,9 +3,6 @@ import json
 import csv
 from datetime import datetime, timezone
 from dynamo_handler import DynamoDBHandler
-import matplotlib.pyplot as plt
-import numpy as np
-# from notion import Notion
 
 # Initialize the handler
 ddb_handler = DynamoDBHandler('manual-fapi-ddb')
@@ -79,9 +76,7 @@ def get_individual_match_player_data(player_data):
             goals_scored = stats[matches]['gS']
             assists = stats[matches]['gA']
             match_date = transform_date(fixtures[matches]['dateTime'])
-            
-            print(f'{player['name']} facts - match id: {match_id}, goals: {goals_scored}, assists: {assists}, dateTime: {match_date}')
-            
+                      
             ddb_handler.write_match_player(player['name'], match_id, goals_scored, assists, match_date)
             ddb_handler.write_match_data(player['name'], match_id, goals_scored, assists, player['position'], match_date)
 
@@ -104,10 +99,8 @@ def main():
     get_individual_match_player_data(players_data)
     
 def handler(event, context): 
+    main()
     return {
         'statusCode': 200,
         'body': json.dumps('Hello from Lambda!')
     }
-
-if __name__ == "__main__":
-    main()
