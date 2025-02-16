@@ -28,9 +28,13 @@ resources:
       Properties:
         TableName: dev-fapi-ddb
         AttributeDefinitions:
-          - AttributeName: playerId
+          - AttributeName: PK
+            AttributeType: S
+          - AttributeName: SK
             AttributeType: S
         KeySchema:
-          - AttributeName: playerId
+          - AttributeName: PK
             KeyType: HASH
+          - AttributeName: SK
+            KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
