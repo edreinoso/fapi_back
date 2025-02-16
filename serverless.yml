@@ -17,9 +17,6 @@ provider:
 functions:
   ingestPlayersData:
     handler: ingester.handler
-    events:
-      - schedule:
-          rate: rate(24 hour)
 
 resources:
   Resources:
