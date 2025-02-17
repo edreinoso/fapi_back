@@ -28,7 +28,7 @@ def transform_players_data(players_data: dict) -> list:
                 'name': player.get('pDName', '').lower(),
                 'goals': player.get('gS', ''),
                 'assist': player.get('assist', ''),
-                'team': player.get('cCode', ''),
+                'team': player.get('tName', ''),
                 'position': skill_description
             })
 
