@@ -60,8 +60,8 @@ def csv_table(list_of_players):
 def transform_date(source_date):
     return datetime.strptime(source_date, "%m/%d/%y %I:%M:%S %p").strftime("%Y-%m-%d")
 
-def get_individual_match_player_data(player_data):
     print(player_data)
+def process_match_data_for_players(player_data, access_pattern):
     for player in player_data:
         conn = http.client.HTTPSConnection("gaming.uefa.com")
         conn.request("GET", f"/en/uclfantasy/services/feeds/popupstats/popupstats_70_{player['id']}.json")
@@ -76,9 +76,11 @@ def get_individual_match_player_data(player_data):
             goals_scored = stats[matches]['gS']
             assists = stats[matches]['gA']
             match_date = transform_date(fixtures[matches]['dateTime'])
-                      
-            ddb_handler.write_match_player(player['name'], match_id, goals_scored, assists, match_date)
-            ddb_handler.write_match_data(player['name'], match_id, goals_scored, assists, player['position'], match_date)
+
+            if access_pattern == 'AP1':
+                ddb_handler.write_match_player(player['name'], match_id, goals_scored, assists, match_date)
+            elif access_pattern == 'AP3':
+                ddb_handler.write_match_data(player['name'], match_id, goals_scored, assists, player['position'], match_date)
 
 def store_player_in_ddb(players: list):
     """Writes transformed player data to DynamoDB."""
@@ -95,8 +97,18 @@ def store_player_in_ddb(players: list):
 def main():
     """Put items in ddb database"""
     players_data  = get_players_data() # list of players
-    store_player_in_ddb(players_data)
-    get_individual_match_player_data(players_data)
+    # Routing logic (switch-like behavior)
+    ap_router = {
+        "AP1": lambda: process_match_data_for_players(players_data, access_pattern="AP1"),
+        "AP2": lambda: store_player_in_ddb(players_data),
+        "AP3": lambda: process_match_data_for_players(players_data, access_pattern="AP3"),
+    }
+
+    ap_type = "AP3"
+    if ap_type in ap_router:
+        ap_router[ap_type]()
+    else:
+        print(f"Unknown access pattern: {ap_type}")
     
 def handler(event, context): 
     main()
