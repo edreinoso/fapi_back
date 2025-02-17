@@ -1,6 +1,8 @@
+import logging
 import http.client
 import json
 import csv
+import time
 from datetime import datetime, timezone
 from dynamo_handler import DynamoDBHandler
 
@@ -96,7 +98,12 @@ def store_player_in_ddb(players: list):
 
 def main():
     """Put items in ddb database"""
+    ingester_start_time = time.time()
+    uefa_start_time = time.time()
     players_data  = get_players_data() # list of players
+    uefa_end_time = time.time()
+    uefa_execution_time = uefa_end_time - uefa_start_time
+    
     # Routing logic (switch-like behavior)
     ap_router = {
         "AP1": lambda: process_match_data_for_players(players_data, access_pattern="AP1"),
@@ -105,10 +112,20 @@ def main():
     }
 
     ap_type = "AP3"
+
     if ap_type in ap_router:
         ap_router[ap_type]()
     else:
         print(f"Unknown access pattern: {ap_type}")
+
+    ingester_end_time = time.time()
+    total_execution_time = ingester_end_time - ingester_start_time
+    ddb_execution_time = total_execution_time - uefa_execution_time
+    average_time_per_player = ddb_execution_time / len(players_data)
+    
+    logging.info(f"Total execution time: {total_execution_time} seconds")
+    print(f"Players recorded: {len(players_data)}")
+    print(f"Uefa execution time: {uefa_execution_time:.2f} seconds.\nDynamoDB execution time: {ddb_execution_time:.2f} seconds. \nTotal execution time: {total_execution_time:.2f} seconds.\nAverage time per player: {average_time_per_player:.2f} seconds.")
     
 def handler(event, context): 
     main()
