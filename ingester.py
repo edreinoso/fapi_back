@@ -1,3 +1,4 @@
+import sys
 import logging
 import http.client
 import json
@@ -80,8 +81,14 @@ def process_match_data_for_players(player_data, access_pattern):
             match_date = transform_date(fixtures[matches]['dateTime'])
 
             if access_pattern == 'AP1':
+                """
+                Handles AP1: Write all matches for a specific player.
+                """
                 ddb_handler.write_match_player(player['name'], match_id, goals_scored, assists, match_date)
             elif access_pattern == 'AP3':
+                """
+                Handles AP3: Write all data about matches.
+                """
                 ddb_handler.write_match_data(player['name'], match_id, goals_scored, assists, player['position'], match_date)
 
 def store_player_in_ddb(players: list):

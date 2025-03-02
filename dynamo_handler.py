@@ -1,4 +1,5 @@
 import boto3
+import time
 from boto3.dynamodb.conditions import Key, Attr
 
 class DynamoDBHandler:
