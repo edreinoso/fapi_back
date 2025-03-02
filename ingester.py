@@ -1,6 +1,9 @@
+import sys
+import logging
 import http.client
 import json
 import csv
+import time
 from datetime import datetime, timezone
 from dynamo_handler import DynamoDBHandler
 
@@ -28,7 +31,7 @@ def transform_players_data(players_data: dict) -> list:
                 'name': player.get('pDName', '').lower(),
                 'goals': player.get('gS', ''),
                 'assist': player.get('assist', ''),
-                'team': player.get('cCode', ''),
+                'team': player.get('tName', ''),
                 'position': skill_description
             })
 
@@ -60,8 +63,8 @@ def csv_table(list_of_players):
 def transform_date(source_date):
     return datetime.strptime(source_date, "%m/%d/%y %I:%M:%S %p").strftime("%Y-%m-%d")
 
-def get_individual_match_player_data(player_data):
     print(player_data)
+def process_match_data_for_players(player_data, access_pattern):
     for player in player_data:
         conn = http.client.HTTPSConnection("gaming.uefa.com")
         conn.request("GET", f"/en/uclfantasy/services/feeds/popupstats/popupstats_70_{player['id']}.json")
@@ -76,9 +79,17 @@ def get_individual_match_player_data(player_data):
             goals_scored = stats[matches]['gS']
             assists = stats[matches]['gA']
             match_date = transform_date(fixtures[matches]['dateTime'])
-                      
-            ddb_handler.write_match_player(player['name'], match_id, goals_scored, assists, match_date)
-            ddb_handler.write_match_data(player['name'], match_id, goals_scored, assists, player['position'], match_date)
+
+            if access_pattern == 'AP1':
+                """
+                Handles AP1: Write all matches for a specific player.
+                """
+                ddb_handler.write_match_player(player['name'], match_id, goals_scored, assists, match_date)
+            elif access_pattern == 'AP3':
+                """
+                Handles AP3: Write all data about matches.
+                """
+                ddb_handler.write_match_data(player['name'], match_id, goals_scored, assists, player['position'], match_date)
 
 def store_player_in_ddb(players: list):
     """Writes transformed player data to DynamoDB."""
@@ -93,10 +104,46 @@ def store_player_in_ddb(players: list):
         )
 
 def main():
+    if len(sys.argv) < 3:
+        print("Usage: uv run <parameter>")
+        sys.exit(1)
+    
+    remove_ddb_table = sys.argv[1]
+    ap_type = sys.argv[2]
+
+    print(f"Working with access pattern: {ap_type}")
+
+    if remove_ddb_table == "y":
+        ddb_handler.recreate_table('manual-fapi-ddb')
+        time.sleep(10)
+    
     """Put items in ddb database"""
+    ingester_start_time = time.time()
+    uefa_start_time = time.time()
     players_data  = get_players_data() # list of players
-    store_player_in_ddb(players_data)
-    get_individual_match_player_data(players_data)
+    uefa_end_time = time.time()
+    uefa_execution_time = uefa_end_time - uefa_start_time
+    
+    # Routing logic (switch-like behavior)
+    ap_router = {
+        "ap1": lambda: process_match_data_for_players(players_data, access_pattern="AP1"),
+        "ap2": lambda: store_player_in_ddb(players_data),
+        "ap3": lambda: process_match_data_for_players(players_data, access_pattern="AP3"),
+    }
+    
+    if ap_type in ap_router:
+        ap_router[ap_type]()
+    else:
+        print(f"Unknown access pattern: {ap_type}")
+
+    ingester_end_time = time.time()
+    total_execution_time = ingester_end_time - ingester_start_time
+    ddb_execution_time = total_execution_time - uefa_execution_time
+    average_time_per_player = ddb_execution_time / len(players_data)
+    
+    logging.info(f"Total execution time: {total_execution_time} seconds")
+    print(f"Players recorded: {len(players_data)}")
+    print(f"Uefa execution time: {uefa_execution_time:.2f} seconds.\nDynamoDB execution time: {ddb_execution_time:.2f} seconds. \nTotal execution time: {total_execution_time:.2f} seconds.\nAverage time per player: {average_time_per_player:.2f} seconds.")
     
 def handler(event, context): 
     main()
