@@ -97,6 +97,15 @@ def store_player_in_ddb(players: list):
         )
 
 def main():
+    if len(sys.argv) < 3:
+        print("Usage: uv run <parameter>")
+        sys.exit(1)
+    
+    remove_ddb_table = sys.argv[1]
+    ap_type = sys.argv[2]
+
+    print(f"Working with access pattern: {ap_type}")
+
     if remove_ddb_table == "y":
         ddb_handler.recreate_table('manual-fapi-ddb')
         time.sleep(10)
@@ -110,13 +119,11 @@ def main():
     
     # Routing logic (switch-like behavior)
     ap_router = {
-        "AP1": lambda: process_match_data_for_players(players_data, access_pattern="AP1"),
-        "AP2": lambda: store_player_in_ddb(players_data),
-        "AP3": lambda: process_match_data_for_players(players_data, access_pattern="AP3"),
+        "ap1": lambda: process_match_data_for_players(players_data, access_pattern="AP1"),
+        "ap2": lambda: store_player_in_ddb(players_data),
+        "ap3": lambda: process_match_data_for_players(players_data, access_pattern="AP3"),
     }
-
-    ap_type = "AP3"
-
+    
     if ap_type in ap_router:
         ap_router[ap_type]()
     else:
