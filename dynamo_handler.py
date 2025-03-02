@@ -4,8 +4,36 @@ from boto3.dynamodb.conditions import Key, Attr
 class DynamoDBHandler:
     def __init__(self, table_name: str):
         """Initialize with a specific DynamoDB table."""
-        dynamodb = boto3.resource('dynamodb')
-        self.table = dynamodb.Table(table_name)
+        self.dynamodb = boto3.resource('dynamodb')
+        self.table = self.dynamodb.Table(table_name)
+        self.dynamodb_client = boto3.client('dynamodb')
+
+    def recreate_table(self, table_name: str):
+        # Delete the table
+        try:
+            self.dynamodb_client.delete_table(TableName=table_name)
+            print(f"Table {table_name} is being deleted...")
+            time.sleep(5)  # Wait before checking status
+        except self.dynamodb_client.exceptions.ResourceNotFoundException:
+            print(f"Table {table_name} not found, skipping delete.")
+
+        # Wait for deletion to complete
+        while True:
+            try:
+                self.dynamodb_client.describe_table(TableName=table_name)
+                time.sleep(5)
+            except self.dynamodb_client.exceptions.ResourceNotFoundException:
+                break  # Table is fully deleted
+
+        # Recreate the table (adjust schema as needed)
+        self.dynamodb_client.create_table(
+            TableName=table_name,
+            KeySchema=[{'AttributeName': 'PK', 'KeyType': 'HASH'}, {'AttributeName': 'SK', 'KeyType': 'RANGE'}],
+            AttributeDefinitions=[{'AttributeName': 'PK', 'AttributeType': 'S'}, {'AttributeName': 'SK', 'AttributeType': 'S'}],
+            BillingMode='PAY_PER_REQUEST'
+        )
+
+        print(f"Table {table_name} has been recreated.")
 
     def write_player_total_score(self, player_name, player_id, player_goals, player_assists, team, position):
         """Writes a player's total score to DynamoDB."""

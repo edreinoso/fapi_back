@@ -97,6 +97,10 @@ def store_player_in_ddb(players: list):
         )
 
 def main():
+    if remove_ddb_table == "y":
+        ddb_handler.recreate_table('manual-fapi-ddb')
+        time.sleep(10)
+    
     """Put items in ddb database"""
     ingester_start_time = time.time()
     uefa_start_time = time.time()
