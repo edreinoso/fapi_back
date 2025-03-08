@@ -20,10 +20,25 @@ functions:
 
 resources:
   Resources:
+    MeasurementTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: dev-fapi-measurement-ddb
+        AttributeDefinitions:
+          - AttributeName: PK
+            AttributeType: S
+          - AttributeName: SK
+            AttributeType: S
+        KeySchema:
+          - AttributeName: PK
+            KeyType: HASH
+          - AttributeName: SK
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
     FapiTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: dev-fapi-ddb
+        TableName: dev-fapi-players-ddb
         AttributeDefinitions:
           - AttributeName: PK
             AttributeType: S

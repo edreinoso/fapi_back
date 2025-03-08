@@ -38,6 +38,7 @@ def read_player_from_ddb(player_names: dict, attribute: str) -> dict:
     player_data = {}
     today = datetime.now(timezone.utc).strftime('%Y-%m-%d')  # Get today's date in YYYY-MM-DD format
 
+    print(today)
 
     for name in player_names:
         response = ddb_handler.query_player_data(name, attribute, today)
@@ -59,7 +60,7 @@ if __name__ == "__main__":
     attributes_str = ', '.join(attributes)  # Convert list back into a string
     data = read_player_from_ddb(player_name, attributes_str)
 
-    # print(data)
+    print(data)
 
     if data:
         visualize_data_in_matplotlib(data, attributes)  # Pass the dictionary to the function

@@ -103,13 +103,43 @@ def store_player_in_ddb(players: list):
             player['position']
         )
 
-def main():
-    if len(sys.argv) < 3:
-        print("Usage: uv run <parameter>")
-        sys.exit(1)
-    
-    remove_ddb_table = sys.argv[1]
-    ap_type = sys.argv[2]
+def put_measurement_items(execution_method, execution_location, ddb_operation_time, uefa_operation_time, total_operation_time, number_of_players, access_pattern, average_time_per_player):
+    table = dynamodb.Table('dev-fapi-measurement-ddb')
+    timestamp = datetime.now(timezone.utc).isoformat()
+
+    table.put_item(
+        Item={
+            'PK': f'{execution_method}#{execution_location}#{access_pattern}#{timestamp}',
+            'SK': f'{timestamp}',
+            'execution_method': execution_method,
+            'execution_location': execution_location,
+            'ddb_operation_time': Decimal(str(ddb_operation_time)),
+            'uefa_operation_time': Decimal(str(uefa_operation_time)),
+            'total_operation_time': Decimal(str(total_operation_time)),
+            'average_time_per_player': Decimal(str(average_time_per_player)),
+            'access_pattern': access_pattern,
+            'number_of_players': number_of_players
+        }
+    )
+
+def get_parameters(event=None):
+    """Determine execution mode and fetch parameters accordingly."""
+    if event:
+        # Running in Lambda
+        remove_ddb_table = event.get("ddb_recreate_parameter")
+        ap_type = event.get("ap_type")
+    else:
+        # Running locally
+        if len(sys.argv) < 3:
+            print("Usage: uv run <ddb_recreate_parameter> <ap_type>")
+            sys.exit(1)
+        remove_ddb_table = sys.argv[1]
+        ap_type = sys.argv[2]
+
+    return remove_ddb_table, ap_type
+
+def main(event=None):
+    remove_ddb_table, ap_type = get_parameters(event)
 
     print(f"Working with access pattern: {ap_type}")
 
@@ -145,8 +175,10 @@ def main():
     print(f"Players recorded: {len(players_data)}")
     print(f"Uefa execution time: {uefa_execution_time:.2f} seconds.\nDynamoDB execution time: {ddb_execution_time:.2f} seconds. \nTotal execution time: {total_execution_time:.2f} seconds.\nAverage time per player: {average_time_per_player:.2f} seconds.")
     
+    put_measurement_items("sequential", "local", ddb_execution_time, uefa_execution_time, total_execution_time, len(players_data), ap_type, average_time_per_player)
+
 def handler(event, context): 
-    main()
+    main(event)
     return {
         'statusCode': 200,
         'body': json.dumps('Hello from Lambda!')
