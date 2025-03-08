@@ -38,7 +38,7 @@ resources:
     FapiTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: dev-fapi-ddb
+        TableName: dev-fapi-players-ddb
         AttributeDefinitions:
           - AttributeName: PK
             AttributeType: S
