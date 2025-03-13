@@ -7,8 +7,10 @@ import time
 from datetime import datetime, timezone
 from dynamo_handler import DynamoDBHandler
 
+MEMORY_CAPACITY = 128
+
 # Initialize the handler
-ddb_handler = DynamoDBHandler('manual-fapi-ddb')
+ddb_handler = DynamoDBHandler('dev-fapi-players-ddb')
 
 # Skill mapping
 skill_map = {
@@ -25,15 +27,16 @@ def transform_players_data(players_data: dict) -> list:
         # Transform the skill number to its description
         skill_description = skill_map.get(player.get('skill', 0), 'unknown')
 
-        if player.get('pDName', '') == 'K. Mbappé' or player.get('pDName', '') == 'Rodrygo':
-            list_of_players.append({
-                'id': player.get('id', ''),
-                'name': player.get('pDName', '').lower(),
-                'goals': player.get('gS', ''),
-                'assist': player.get('assist', ''),
-                'team': player.get('tName', ''),
-                'position': skill_description
-            })
+        # if player.get('tName', '') == 'Real Madrid':
+        # if player.get('pDName', '') == 'K. Mbappé' or player.get('pDName', '') == 'Rodrygo':
+        list_of_players.append({
+            'id': player.get('id', ''),
+            'name': player.get('pDName', '').lower(),
+            'goals': player.get('gS', ''),
+            'assist': player.get('assist', ''),
+            'team': player.get('tName', ''),
+            'position': skill_description
+        })
 
     return list_of_players
 
@@ -118,7 +121,8 @@ def put_measurement_items(execution_method, execution_location, ddb_operation_ti
             'total_operation_time': Decimal(str(total_operation_time)),
             'average_time_per_player': Decimal(str(average_time_per_player)),
             'access_pattern': access_pattern,
-            'number_of_players': number_of_players
+            'number_of_players': number_of_players,
+            'memory_capacity': MEMORY_CAPACITY
         }
     )
 
@@ -185,3 +189,7 @@ def handler(event, context):
         'statusCode': 200,
         'body': json.dumps('Hello from Lambda!')
     }
+
+# RUN LOCALLY
+if __name__ == "__main__":
+    main()
