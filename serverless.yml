@@ -12,11 +12,14 @@ provider:
         - dynamodb:Scan
         - dynamodb:Query
       Resource:
-        - arn:aws:dynamodb:${self:provider.region}:*:table/dev-fapi-ddb
+        - arn:aws:dynamodb:${self:provider.region}:*:table/dev-fapi-players-ddb
+        - arn:aws:dynamodb:${self:provider.region}:*:table/dev-fapi-measurement-ddb
 
 functions:
   ingestPlayersData:
     handler: ingester.handler
+    memorySize: 256
+    timeout: 600
 
 resources:
   Resources:
