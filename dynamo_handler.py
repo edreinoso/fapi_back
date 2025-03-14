@@ -81,7 +81,7 @@ class DynamoDBHandler:
         """Query DynamoDB for a player's data."""
         response = self.table.query(
             KeyConditionExpression=Key('PK').eq(f'PLAYER#{player_name}') & Key('SK').begins_with('MATCH#'),
-            FilterExpression=Key('match_date').lt(date_condition),  # Only retrieve past matches
+            FilterExpression=Key('match_date').lte(date_condition),  # Only retrieve past matches
             ProjectionExpression=attributes
         )
         return response['Items']

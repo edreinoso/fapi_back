@@ -12,8 +12,8 @@ provider:
         - dynamodb:Scan
         - dynamodb:Query
       Resource:
-        - arn:aws:dynamodb:${self:provider.region}:*:table/dev-fapi-players-ddb
-        - arn:aws:dynamodb:${self:provider.region}:*:table/dev-fapi-measurement-ddb
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${opt:stage}-fapi-players-ddb
+        - arn:aws:dynamodb:${self:provider.region}:*:table/${opt:stage}-fapi-measurement-ddb
 
 functions:
   ingestPlayersData:
@@ -26,7 +26,7 @@ resources:
     MeasurementTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: dev-fapi-measurement-ddb
+        TableName: ${opt:stage}-fapi-measurement-ddb
         AttributeDefinitions:
           - AttributeName: PK
             AttributeType: S
@@ -41,7 +41,7 @@ resources:
     FapiTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: dev-fapi-players-ddb
+        TableName: ${opt:stage}-fapi-players-ddb
         AttributeDefinitions:
           - AttributeName: PK
             AttributeType: S
