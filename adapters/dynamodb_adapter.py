@@ -15,3 +15,17 @@ class DynamoDBPlayerStatsRepository:
             ProjectionExpression=attributes
         )
         return response['Items']
+    
+    def put_player_total_scores(self, player_name: str, player_id: str, goals: str, assists: str, team: str, position: str) -> str:
+        """Writes a player's total score to DynamoDB."""
+        self.table.put_item(
+            Item={
+                'PK': f'PLAYER#{player_name}',
+                'SK': 'TOTALS',
+                'player_id': player_id,
+                'goals': goals,
+                'assists': assists,
+                'team': team,
+                'position': position
+            }
+        )
