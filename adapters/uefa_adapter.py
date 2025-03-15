@@ -1,10 +1,20 @@
 # adapters/api_adapter.py
-import requests
+import http.client
+import json
 
-class APIPlayerStatsRepository:
-    def __init__(self, base_url: str):
-        self.base_url = base_url
+class UEFAPlayerStatsRepository:
+    def __init__(self, endpoint_url: str):
+        self.endpoint_url = endpoint_url
 
-    def get_player_stats(self, player_id: str) -> dict:
-        response = requests.get(f"{self.base_url}/players/{player_id}/stats")
-        return response.json() if response.status_code == 200 else {}
+    def get_all_player_stats(self) -> dict:
+        conn = http.client.HTTPSConnection("gaming.uefa.com")
+        conn.request("GET", self.endpoint_url)
+        res = conn.getresponse()
+        data = res.read()
+        players_data = json.loads(data.decode("utf-8"))
+        print(type(players_data['data']['value']['playerList']))
+        return players_data['data']['value']['playerList']
+    
+    # Players that are still participating in the tournament
+    def get_current_player_stats():
+        pass

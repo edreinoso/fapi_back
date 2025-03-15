@@ -11,4 +11,7 @@ class DDBPlayerStatsRepository(Protocol):  # Port
         """Update player total score"""
         pass
 
+class UEFAPlayerStatsRepository(Protocol):
+    def get_all_player_stats(self) -> dict:
+        """Fetch all player statistics"""
         pass
