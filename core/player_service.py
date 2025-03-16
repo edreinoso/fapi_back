@@ -1,4 +1,5 @@
 # core/player_service.py
+import time
 from core.ports import DDBPlayerStatsRepository
 from core.ports import UEFAPlayerStatsRepository
 from datetime import datetime, timezone
@@ -15,12 +16,26 @@ class PlayerService:
             4: "attackers"
         }
 
-    def put_player_total_score(self, player_name: str, player_id: str, player_goals: str, player_assists: str, team: str, position: str) -> str:
-        # update players in fapi ddb
-        self.stats_repository.put_player_total_score(player_name, player_id, player_goals, player_assists, team, position)
+    def recreate_ddb_table(self) -> str:
+        self.stats_repository.delete_table()
+        self.stats_repository.describe_table()
+        self.stats_repository.create_table()
+        return "Table has been recreated"
         
-        return "hello world"
-    
+    def update_ddb_table_with_latest_player_data(self) -> str:
+        
+        # delete ddb table
+        self.recreate_ddb_table()
+        
+        # get all players from uefa
+        list_of_players = self.get_all_player_stats_from_uefa()
+
+        # update players in fapi ddb
+        for player in list_of_players:
+            self.stats_repository.put_player_total_scores_ap2(player['name'], player['id'], player['goals'], player['assist'], player['team'], player['position'])
+
+        return "All players with access pattern two have been updated"
+
     def get_all_player_stats_from_uefa(self) -> dict:
         # retrieve players from uefa
         list_of_players = []

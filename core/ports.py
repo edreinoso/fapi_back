@@ -11,6 +11,14 @@ class DDBPlayerStatsRepository(Protocol):  # Port
         """Update player total score"""
         pass
 
+    def create_table(self, table_name: str):
+        """Create a DynamoDB table"""
+        pass
+
+    def delete_table(self, table_name: str):
+        """Delete a DynamoDB table"""
+        pass
+
 class UEFAPlayerStatsRepository(Protocol):
     def get_all_player_stats(self) -> dict:
         """Fetch all player statistics"""
