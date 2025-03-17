@@ -14,6 +14,16 @@ class UEFAPlayerStatsRepository:
         players_data = json.loads(data.decode("utf-8"))
         return players_data['data']['value']['playerList']
     
+    def get_all_matches_per_player_stats(self, player_id: str) -> tuple[list, list]:
+        conn = http.client.HTTPSConnection("gaming.uefa.com")
+        conn.request("GET", self.endpoint_url)
+        res = conn.getresponse()
+        data = res.read()
+        players_data = json.loads(data.decode("utf-8"))
+        fixtures = players_data['data']['value']['fixtures']
+        stats = players_data['data']['value']['stats']
+        return fixtures, stats
+    
     # Players that are still participating in the tournament
     def get_current_player_stats():
         pass
