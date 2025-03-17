@@ -1,6 +1,13 @@
 # main.py
 from application.cli import player_service
 
+def handler(event, context):
+    main(event)
+    return {
+        "statusCode": 200,
+        "body": "Success"
+    }
+
 if __name__ == "__main__":
     player_name = "pedri"
     attributes = "goals, match_date"
