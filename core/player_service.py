@@ -21,11 +21,36 @@ class PlayerService:
         self.stats_repository.describe_table()
         self.stats_repository.create_table()
         return "Table has been recreated"
+    
+    def transform_date(self, source_date):
+        return datetime.strptime(source_date, "%m/%d/%y %I:%M:%S %p").strftime("%Y-%m-%d")
+
+    def update_ddb_table_with_ap1_and_ap3(self, ap: str) -> str:
         
-    def update_ddb_table_with_latest_player_data(self) -> str:
+        # get all players from uefa
+        list_of_players = self.get_all_player_stats_from_uefa()
+
+        # update players in fapi ddb
+        for player in list_of_players:
+            fixtures, stats = self.uefa_repository.get_all_matches_per_player_stats(player['id'])
+
+            for matches in range(0,len(fixtures)):
+                match_id = fixtures[matches]['mId']
+                goals_scored = stats[matches]['gS']
+                assists = stats[matches]['gA']
+                match_date = self.transform_date(fixtures[matches]['dateTime'])
+
+                if ap == 'ap1':
+                    self.stats_repository.put_player_point_per_match_ap1(player['name'], match_id, goals_scored, assists, match_date)
+                elif ap == 'ap3':
+                    self.stats_repository.put_matches_stats_ap3(player['name'], match_id, goals_scored, assists, player['position'], match_date)
+
+    def update_ddb_table_with_ap2(self, remove_ddb_table: str) -> str:
         
         # delete ddb table
-        self.recreate_ddb_table()
+        if remove_ddb_table == 'y':
+            self.recreate_ddb_table()
+            time.sleep(10)
         
         # get all players from uefa
         list_of_players = self.get_all_player_stats_from_uefa()
