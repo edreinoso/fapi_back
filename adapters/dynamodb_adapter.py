@@ -1,5 +1,7 @@
 # adapters/dynamodb_adapter.py
 import time
+from datetime import datetime, timezone
+from decimal import Decimal
 from boto3.dynamodb.conditions import Key, Attr
 import boto3
 
@@ -10,7 +12,10 @@ class DynamoDBPlayerStatsRepository:
         self.dynamodb_client = boto3.client("dynamodb")
         self.table = self.dynamodb.Table(table_name)
 
-    def get_player_stats(self, player_name: str, date_condition: str, attributes: str) -> dict:
+    def get_player_stats(self, 
+                         player_name: str, 
+                         date_condition: str, 
+                         attributes: str) -> dict:
         response = self.table.query(
             KeyConditionExpression=Key('PK').eq(f'PLAYER#{player_name}') & Key('SK').begins_with('MATCH#'),
             FilterExpression=Key('match_date').lte(date_condition),  # Only retrieve past matches
@@ -21,7 +26,13 @@ class DynamoDBPlayerStatsRepository:
     def put_player_point_per_match_ap1(self):
         pass
 
-    def put_player_total_scores_ap2(self, player_name: str, player_id: str, goals: str, assists: str, team: str, position: str) -> str:
+    def put_player_total_scores_ap2(self, 
+                                    player_name: str, 
+                                    player_id: str, 
+                                    goals: str, 
+                                    assists: str, 
+                                    team: str,
+                                    position: str) -> str:
         """Writes a player's total score to DynamoDB."""
         self.table.put_item(
             Item={
@@ -37,6 +48,33 @@ class DynamoDBPlayerStatsRepository:
 
     def put_matches_stats_ap3(self):
         pass
+    
+    def put_measurement_items(self, 
+                              execution_method: str, 
+                              execution_location: str, 
+                              ddb_operation_time: float, 
+                              uefa_operation_time: float, 
+                              total_operation_time: float, 
+                              number_of_players: int, 
+                              access_pattern: str, 
+                              average_time_per_player: float, 
+                              memory_capacity: int): 
+        timestamp = datetime.now(timezone.utc).isoformat()        
+        self.table.put_item(
+            Item={
+                'PK': f'{execution_method}#{execution_location}#{access_pattern}#{timestamp}',
+                'SK': f'{timestamp}',
+                'execution_method': execution_method,
+                'execution_location': execution_location,
+                'ddb_operation_time': Decimal(str(ddb_operation_time)),
+                'uefa_operation_time': Decimal(str(uefa_operation_time)),
+                'total_operation_time': Decimal(str(total_operation_time)),
+                'average_time_per_player': Decimal(str(average_time_per_player)),
+                'access_pattern': access_pattern,
+                'number_of_players': number_of_players,
+                'memory_capacity': memory_capacity
+            }
+        )
 
     def create_table(self):
         self.dynamodb_client.create_table(
