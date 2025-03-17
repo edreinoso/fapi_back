@@ -2,13 +2,15 @@
 import time
 from core.ports import DDBPlayerStatsRepository
 from core.ports import UEFAPlayerStatsRepository
+from core.measurement_service import MeasurementService
 from datetime import datetime, timezone
 
 
 class PlayerService:
-    def __init__(self, stats_repository: DDBPlayerStatsRepository, uefa_repository: UEFAPlayerStatsRepository):
+    def __init__(self, stats_repository: DDBPlayerStatsRepository, uefa_repository: UEFAPlayerStatsRepository, measurement: MeasurementService):
         self.stats_repository = stats_repository
         self.uefa_repository = uefa_repository
+        self.measurement = measurement
         self.skill_map = {
             1: "goal keepers",
             2: "defenders",
@@ -26,6 +28,7 @@ class PlayerService:
         return datetime.strptime(source_date, "%m/%d/%y %I:%M:%S %p").strftime("%Y-%m-%d")
 
     def update_ddb_table_with_ap1_and_ap3(self, ap: str) -> str:
+        print('test from player_service (update_ddb_table_with_ap1)')
         
         # get all players from uefa
         list_of_players = self.get_all_player_stats_from_uefa()
@@ -46,6 +49,7 @@ class PlayerService:
                     self.stats_repository.put_matches_stats_ap3(player['name'], match_id, goals_scored, assists, player['position'], match_date)
 
     def update_ddb_table_with_ap2(self, remove_ddb_table: str) -> str:
+        print('test from player_service (update_ddb_table_with_ap2)')
         
         # delete ddb table
         if remove_ddb_table == 'y':
@@ -53,15 +57,24 @@ class PlayerService:
             time.sleep(10)
         
         # get all players from uefa
+        uefa_start_time = time.time()
         list_of_players = self.get_all_player_stats_from_uefa()
+        uefa_end_time = time.time()
 
         # update players in fapi ddb
+        ddb_start_time = time.time()
         for player in list_of_players:
             self.stats_repository.put_player_total_scores_ap2(player['name'], player['id'], player['goals'], player['assist'], player['team'], player['position'])
+        ddb_end_time = time.time()
+
+        self.measurement.uefa_execution_time = uefa_end_time - uefa_start_time
+        self.measurement.ddb_execution_time = ddb_end_time - ddb_start_time
 
         return "All players with access pattern two have been updated"
 
-    def get_all_player_stats_from_uefa(self) -> dict:
+    def get_all_player_stats_from_uefa(self) -> list:
+        print('test from player_service (get_all_player_stats_from_uefa)')
+        start_time = time.time()
         # retrieve players from uefa
         list_of_players = []
         players_data = self.uefa_repository.get_all_player_stats()
@@ -79,6 +92,8 @@ class PlayerService:
                 'position': skill_description
             })
 
+        end_time = time.time()
+        self.measurement.uefa_execution_time = end_time - start_time
         return list_of_players
 
     def get_player_stats_from_ddb(self, player_name: str, attributes: str) -> dict:
