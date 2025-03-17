@@ -35,3 +35,12 @@ def get_parameters(event=None):
 def main():
     remove_ddb_table, ap_type, execution_environment = get_parameters()
     print(f'{remove_ddb_table} {ap_type} {execution_environment}')
+
+    ap_router = {
+        'ap2': player_service.update_ddb_table_with_ap2, # update player total scores
+    }
+
+    if ap_type in ap_router:
+        ap_router[ap_type](remove_ddb_table)
+    else:
+        print(f'Unknown access pattern: {ap_type}')
