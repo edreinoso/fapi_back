@@ -57,6 +57,7 @@ class PlayerService:
             time.sleep(10)
         
         # get all players from uefa
+        total_execution_start_time = time.time()
         uefa_start_time = time.time()
         list_of_players = self.get_all_player_stats_from_uefa()
         uefa_end_time = time.time()
@@ -66,15 +67,18 @@ class PlayerService:
         for player in list_of_players:
             self.stats_repository.put_player_total_scores_ap2(player['name'], player['id'], player['goals'], player['assist'], player['team'], player['position'])
         ddb_end_time = time.time()
+        total_execution_end_time = time.time()
 
+        self.measurement.number_of_players = len(list_of_players)
+        self.measurement.average_time_per_player = (ddb_end_time - ddb_start_time) / len(list_of_players)
         self.measurement.uefa_execution_time = uefa_end_time - uefa_start_time
         self.measurement.ddb_execution_time = ddb_end_time - ddb_start_time
+        self.measurement.total_execution_time = total_execution_end_time - total_execution_start_time
 
         return "All players with access pattern two have been updated"
 
     def get_all_player_stats_from_uefa(self) -> list:
         print('test from player_service (get_all_player_stats_from_uefa)')
-        start_time = time.time()
         # retrieve players from uefa
         list_of_players = []
         players_data = self.uefa_repository.get_all_player_stats()
@@ -92,8 +96,6 @@ class PlayerService:
                 'position': skill_description
             })
 
-        end_time = time.time()
-        self.measurement.uefa_execution_time = end_time - start_time
         return list_of_players
 
     def get_player_stats_from_ddb(self, player_name: str, attributes: str) -> dict:

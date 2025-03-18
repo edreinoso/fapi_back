@@ -3,6 +3,7 @@ import sys
 from adapters.dynamodb_adapter import DynamoDBPlayerStatsRepository
 from adapters.uefa_adapter import UEFAPlayerStatsRepository
 from core.player_service import PlayerService
+from core.measurement_service import MeasurementService
 
 # Initialize repositories
 # players_repository = DynamoDBPlayerStatsRepository(table_name="manual-fapi-ddb")
@@ -11,10 +12,10 @@ manual_players_repository = DynamoDBPlayerStatsRepository(table_name="manual-fap
 measurement_repository = DynamoDBPlayerStatsRepository(table_name="dev-fapi-measurement-ddb")
 uefa_repository = UEFAPlayerStatsRepository(endpoint_url="/en/uclfantasy/services/feeds/players/players_70_en_9.json")
 
-# Initialize services
-player_service = PlayerService(manual_players_repository, uefa_repository)
+MEMORY_CAPACITY = 256
 
-def get_parameters(event=None):
+# This function will help determine the execution mode and fetch parameters
+def get_parameters(event=None) -> tuple[str, str, str]:
     """Determine execution mode and fetch parameters accordingly."""
     if event:
         # Running in Lambda
@@ -35,7 +36,12 @@ def get_parameters(event=None):
 def main():
     remove_ddb_table, ap_type, execution_environment = get_parameters()
     print(f'{remove_ddb_table} {ap_type} {execution_environment}')
-
+    
+    # Initialize services
+    measurement_service = MeasurementService(measurement_repository, MEMORY_CAPACITY, execution_environment, 'sequential', ap_type)
+    player_service = PlayerService(manual_players_repository, uefa_repository, measurement_service)
+    
+    # access pattern router
     ap_router = {
         'ap2': player_service.update_ddb_table_with_ap2, # update player total scores
     }
@@ -44,3 +50,5 @@ def main():
         ap_router[ap_type](remove_ddb_table)
     else:
         print(f'Unknown access pattern: {ap_type}')
+
+    measurement_service.update_ddb_with_runtime_measurement()
