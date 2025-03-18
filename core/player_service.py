@@ -50,19 +50,19 @@ class PlayerService:
 
     def update_ddb_table_with_ap2(self, remove_ddb_table: str) -> str:
         print('test from player_service (update_ddb_table_with_ap2)')
-        
-        # delete ddb table
+                
+        # 1️⃣ delete ddb table
         if remove_ddb_table == 'y':
             self.recreate_ddb_table()
             time.sleep(10)
         
-        # get all players from uefa
+        # 2️⃣ get all players from uefa
         total_execution_start_time = time.time()
         uefa_start_time = time.time()
         list_of_players = self.get_all_player_stats_from_uefa()
         uefa_end_time = time.time()
 
-        # update players in fapi ddb
+        # 3️⃣ update players in fapi ddb
         ddb_start_time = time.time()
         for player in list_of_players:
             self.stats_repository.put_player_total_scores_ap2(player['name'], player['id'], player['goals'], player['assist'], player['team'], player['position'])
