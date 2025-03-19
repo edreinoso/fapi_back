@@ -7,7 +7,26 @@ class UEFAService:
         self.measurement_repository = measurement_repository
 
     def get_all_player_matches_stats_from_uefa(self) -> list:
-        pass
+        list_of_players_matches = []
+        players_data = self.get_all_player_stats_from_uefa()
+
+        for player in players_data:
+            fixtures, stats = self.uefa_repository.get_all_matches_per_player_stats(player['id'])
+            
+            for matches in range(0, len(fixtures)):
+                match_id = fixtures[matches]['mId']
+                goals_scored = stats[matches]['gS']
+                assists = stats[matches]['gA']
+                match_date = fixtures[matches]['dateTime']
+                
+                list_of_players_matches.append({
+                    'player_name': player['name'],
+                    'match_id': match_id,
+                    'goals': goals_scored,
+                    'assists': assists,
+                    'date_time': match_date
+                })
+
 
     def get_all_player_stats_from_uefa(self) -> list:
         # retrieve players from uefa
