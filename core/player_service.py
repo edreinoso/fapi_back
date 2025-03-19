@@ -31,9 +31,13 @@ class PlayerService:
         print('test from player_service (update_ddb_table_with_ap1)')
         
         # get all players from uefa
+        total_execution_start_time = time.time()
+        uefa_start_time = time.time()
         list_of_players = self.get_all_player_stats_from_uefa()
+        uefa_end_time = time.time()
 
-        # update players in fapi ddb
+        ddb_start_time = time.time()
+        # update player matches in ddb
         for player in list_of_players:
             fixtures, stats = self.uefa_repository.get_all_matches_per_player_stats(player['id'])
 
@@ -47,10 +51,16 @@ class PlayerService:
                     self.stats_repository.put_player_point_per_match_ap1(player['name'], match_id, goals_scored, assists, match_date)
                 elif ap == 'ap3':
                     self.stats_repository.put_matches_stats_ap3(player['name'], match_id, goals_scored, assists, player['position'], match_date)
+        ddb_end_time = time.time()
+        total_execution_end_time = time.time()
+        
+        self.measurement.number_of_players = len(list_of_players)
+        self.measurement.average_time_per_player = (ddb_end_time - ddb_start_time) / len(list_of_players)
+        self.measurement.uefa_execution_time = uefa_end_time - uefa_start_time
+        self.measurement.ddb_execution_time = ddb_end_time - ddb_start_time
+        self.measurement.total_execution_time = total_execution_end_time - total_execution_start_time
 
     def update_ddb_table_with_ap2(self, remove_ddb_table: str) -> str:
-        print('test from player_service (update_ddb_table_with_ap2)')
-                
         # 1️⃣ delete ddb table
         if remove_ddb_table == 'y':
             self.recreate_ddb_table()
