@@ -6,9 +6,35 @@ class DDBPlayerStatsRepository(Protocol):  # Port
         """Fetch player statistics by ID"""
         pass
 
+    # Access Pattern 1
+    def put_player_point_per_match_ap1(self,
+                                       player_name: str,
+                                       match_id: str,
+                                       player_goals: str,
+                                       player_assists: str,
+                                       date_time: str) -> str:
+        """Update player point per match"""
+        pass
+
     # Access Pattern 2
-    def put_player_total_score(self, player_name: str, player_id: str, player_goals: str, player_assists: str, team: str, position: str) -> str:
+    def put_player_total_scores_ap2(self, 
+                               player_name: str, 
+                               player_id: str, 
+                               player_goals: str, 
+                               player_assists: str, 
+                               team: str, 
+                               position: str) -> str:
         """Update player total score"""
+        pass
+
+    # Access Pattern 3
+    def put_matches_stats_ap3(self, 
+                         player_name: str, 
+                         match_id: str, 
+                         player_goals: str, 
+                         player_assists: str, 
+                         date_time: str) -> str:
+        """Update match player"""
         pass
 
     def create_table(self, table_name: str):
@@ -17,6 +43,23 @@ class DDBPlayerStatsRepository(Protocol):  # Port
 
     def delete_table(self, table_name: str):
         """Delete a DynamoDB table"""
+        pass
+
+    def describe_table(self, table_name: str):
+        """Describe a DynamoDB table"""
+        pass
+
+    def put_measurement_items(self,
+                              execution_method: str,
+                              execution_location: str,
+                              ddb_operation_time: float,
+                              uefa_operation_time: float,
+                              total_operation_time: float,
+                              number_of_players: int,
+                              access_pattern: str,
+                              average_time_per_player: float,
+                              memory_capacity: int):
+        """Put measurement items"""
         pass
 
 class UEFAPlayerStatsRepository(Protocol):
