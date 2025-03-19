@@ -3,6 +3,7 @@ import sys
 from adapters.dynamodb_adapter import DynamoDBPlayerStatsRepository
 from adapters.uefa_adapter import UEFAPlayerStatsRepository
 from core.player_service import PlayerService
+from core.uefa_service import UEFAService
 from core.measurement_service import MeasurementService
 
 # Initialize repositories
@@ -33,21 +34,34 @@ def get_parameters(event=None) -> tuple[str, str, str]:
     
     return remove_ddb_table, ap_type, execution_environment
 
+def call_ap1_and_ap3(measurement_service, ap_type):
+    uefa_service = UEFAService(uefa_repository, measurement_repository)
+    list_of_player_matches = uefa_service.get_all_player_stats_from_uefa() # get list of players from UEFA
+    player_service = PlayerService(manual_players_repository, list_of_player_matches, measurement_service)
+    player_service.update_ddb_table_with_ap1_and_ap3(ap_type)
+
+def call_ap2(measurement_service):
+    uefa_service = UEFAService(uefa_repository, measurement_repository)
+    list_of_players = uefa_service.get_all_player_stats_from_uefa() # get list of players from UEFA
+    player_service = PlayerService(manual_players_repository, list_of_players, measurement_service)
+    player_service.update_ddb_table_with_ap2()
+
 def main():
     remove_ddb_table, ap_type, execution_environment = get_parameters()
     print(f'{remove_ddb_table} {ap_type} {execution_environment}')
     
     # Initialize services
     measurement_service = MeasurementService(measurement_repository, MEMORY_CAPACITY, execution_environment, 'sequential', ap_type)
-    player_service = PlayerService(manual_players_repository, uefa_repository, measurement_service)
     
     # access pattern router
     ap_router = {
-        'ap2': player_service.update_ddb_table_with_ap2, # update player total scores
+        'ap1': lambda: call_ap1_and_ap3(measurement_service, ap_type), # update player total scores
+        'ap2': lambda: call_ap2(measurement_service), # update player total scores
+        'ap3': lambda: call_ap1_and_ap3(measurement_service, ap_type), # update player total scores
     }
 
     if ap_type in ap_router:
-        ap_router[ap_type](remove_ddb_table)
+        ap_router[ap_type]()
     else:
         print(f'Unknown access pattern: {ap_type}')
 
