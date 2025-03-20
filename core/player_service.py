@@ -7,14 +7,14 @@ from datetime import datetime, timezone
 
 class PlayerService:
     def __init__(self, stats_repository: DDBPlayerStatsRepository, uefa_repository: UEFAPlayerStatsRepository, measurement: MeasurementService):
-        self.stats_repository = stats_repository
         self.uefa_repository = uefa_repository
+        self.ddb_repository = ddb_repository
         self.measurement = measurement
         
     def recreate_ddb_table(self) -> str:
-        self.stats_repository.delete_table()
-        self.stats_repository.describe_table()
-        self.stats_repository.create_table()
+        self.ddb_repository.delete_table()
+        self.ddb_repository.describe_table()
+        self.ddb_repository.create_table()
         return "Table has been recreated"
     
     def transform_date(self, source_date):
@@ -41,9 +41,10 @@ class PlayerService:
                 match_date = self.transform_date(fixtures[matches]['dateTime'])
 
                 if ap == 'ap1':
-                    self.stats_repository.put_player_point_per_match_ap1(player['name'], match_id, goals_scored, assists, match_date)
+                    self.ddb_repository.put_player_point_per_match_ap1(player['name'], match_id, goals_scored, assists, match_date)
                 elif ap == 'ap3':
-                    self.stats_repository.put_matches_stats_ap3(player['name'], match_id, goals_scored, assists, player['position'], match_date)
+                    self.ddb_repository.put_matches_stats_ap3(player['name'], match_id, goals_scored, assists, player['position'], match_date)
+
         ddb_end_time = time.time()
         total_execution_end_time = time.time()
         
@@ -68,7 +69,7 @@ class PlayerService:
         # 3️⃣ update players in fapi ddb
         ddb_start_time = time.time()
         for player in list_of_players:
-            self.stats_repository.put_player_total_scores_ap2(player['name'], player['id'], player['goals'], player['assist'], player['team'], player['position'])
+            self.ddb_repository.put_player_total_scores_ap2(player['name'], player['id'], player['goals'], player['assist'], player['team'], player['position'])
         ddb_end_time = time.time()
         total_execution_end_time = time.time()
 
@@ -82,7 +83,7 @@ class PlayerService:
 
     def get_player_stats_from_ddb(self, player_name: str, attributes: str) -> dict:
         today = datetime.now(timezone.utc).strftime('%Y-%m-%d')  # Get today's date in YYYY-MM-DD format
-        stats = self.stats_repository.get_player_stats(player_name, today, attributes)
+        stats = self.ddb_repository.get_player_stats(player_name, today, attributes)
         if not stats:
             return {"error": "Player not found"}
 
