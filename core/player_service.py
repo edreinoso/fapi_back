@@ -2,13 +2,14 @@
 import time
 from core.ports import DDBPlayerStatsRepository
 from core.measurement_service import MeasurementService
+from core.uefa_service import UEFAService
 from datetime import datetime, timezone
 
 
 class PlayerService:
-    def __init__(self, stats_repository: DDBPlayerStatsRepository, uefa_repository: UEFAPlayerStatsRepository, measurement: MeasurementService):
-        self.uefa_repository = uefa_repository
+    def __init__(self, ddb_repository: DDBPlayerStatsRepository, uefa_service: UEFAService, measurement: MeasurementService):
         self.ddb_repository = ddb_repository
+        self.uefa_service = uefa_service
         self.measurement = measurement
         
     def recreate_ddb_table(self) -> str:
@@ -25,20 +26,17 @@ class PlayerService:
         
         # get all players from uefa
         total_execution_start_time = time.time()
-        uefa_start_time = time.time()
-        list_of_players = self.get_all_player_stats_from_uefa()
-        uefa_end_time = time.time()
+        list_of_players = self.uefa_service.get_all_player_matches_stats_from_uefa()
+
 
         ddb_start_time = time.time()
         # update player matches in ddb
         for player in list_of_players:
-            fixtures, stats = self.uefa_repository.get_all_matches_per_player_stats(player['id'])
-
-            for matches in range(0,len(fixtures)):
-                match_id = fixtures[matches]['mId']
-                goals_scored = stats[matches]['gS']
-                assists = stats[matches]['gA']
-                match_date = self.transform_date(fixtures[matches]['dateTime'])
+            for matches in range(0,len(player['fixtures'])):
+                match_id = player[matches]['mId']
+                goals_scored = player[matches]['goals_scored']
+                assists = player[matches]['assists']
+                match_date = player[matches]['date_time']
 
                 if ap == 'ap1':
                     self.ddb_repository.put_player_point_per_match_ap1(player['name'], match_id, goals_scored, assists, match_date)
@@ -62,9 +60,7 @@ class PlayerService:
         
         # 2️⃣ get all players from uefa
         total_execution_start_time = time.time()
-        uefa_start_time = time.time()
-        list_of_players = self.get_all_player_stats_from_uefa()
-        uefa_end_time = time.time()
+        list_of_players = self.uefa_service.get_all_player_stats_from_uefa()
 
         # 3️⃣ update players in fapi ddb
         ddb_start_time = time.time()
@@ -75,7 +71,6 @@ class PlayerService:
 
         self.measurement.number_of_players = len(list_of_players)
         self.measurement.average_time_per_player = (ddb_end_time - ddb_start_time) / len(list_of_players)
-        self.measurement.uefa_execution_time = uefa_end_time - uefa_start_time
         self.measurement.ddb_execution_time = ddb_end_time - ddb_start_time
         self.measurement.total_execution_time = total_execution_end_time - total_execution_start_time
 
