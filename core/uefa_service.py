@@ -17,6 +17,7 @@ class UEFAService:
         players_matches_dict = {}
         players_data = self.get_all_player_stats_from_uefa()
 
+        start_time = time.time()
         for player in players_data:
             fixtures, stats = self.uefa_repository.get_all_matches_per_player_stats(player['id'])
             player_name = player['name']
@@ -37,12 +38,16 @@ class UEFAService:
                     'date_time': match_date
                 })
 
+        end_time = time.time()
+        self.measurement_repository.uefa_execution_time = end_time - start_time
 
         return list(players_matches_dict.values())
 
     def get_all_player_stats_from_uefa(self) -> list:
         # retrieve players from uefa
         list_of_players = []
+        start_time = time.time()
+        
         players_data = self.uefa_repository.get_all_player_stats()
 
         for player in players_data:
@@ -57,5 +62,9 @@ class UEFAService:
                 'team': player.get('tName', ''),
                 'position': skill_description
             })
+        
+        end_time = time.time()
+
+        self.measurement_repository.uefa_execution_time = end_time - start_time
 
         return list_of_players
