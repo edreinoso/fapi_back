@@ -3,9 +3,9 @@ from core.ports import UEFAPlayerStatsRepository
 from core.measurement_service import MeasurementService
 
 class UEFAService:
-    def __init__(self, uefa_repository: UEFAPlayerStatsRepository, measurement_repository: MeasurementService): 
+    def __init__(self, uefa_repository: UEFAPlayerStatsRepository, measurement: MeasurementService): 
         self.uefa_repository = uefa_repository
-        self.measurement_repository = measurement_repository
+        self.measurement = measurement
         self.skill_map = {
             1: "goal keepers",
             2: "defenders",
@@ -14,10 +14,11 @@ class UEFAService:
         }
 
     def get_all_player_matches_stats_from_uefa(self) -> list:
+        start_time = time.time()
+        
         players_matches_dict = {}
         players_data = self.get_all_player_stats_from_uefa()
 
-        start_time = time.time()
         for player in players_data:
             fixtures, stats = self.uefa_repository.get_all_matches_per_player_stats(player['id'])
             player_name = player['name']
@@ -39,15 +40,17 @@ class UEFAService:
                 })
 
         end_time = time.time()
-        self.measurement_repository.uefa_execution_time = end_time - start_time
+
+        self.measurement.increment_uefa_execution_time(end_time - start_time)
 
         return list(players_matches_dict.values())
 
     def get_all_player_stats_from_uefa(self) -> list:
-        # retrieve players from uefa
-        list_of_players = []
         start_time = time.time()
+
+        list_of_players = []
         
+        # retrieve players from uefa
         players_data = self.uefa_repository.get_all_player_stats()
 
         for player in players_data:
@@ -65,6 +68,6 @@ class UEFAService:
         
         end_time = time.time()
 
-        self.measurement_repository.uefa_execution_time = end_time - start_time
+        self.measurement.increment_uefa_execution_time(end_time - start_time)
 
         return list_of_players
