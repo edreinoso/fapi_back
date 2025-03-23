@@ -57,7 +57,6 @@ class PlayerService:
             time.sleep(10)
         
         # 2️⃣ get all players from uefa
-        total_execution_start_time = time.time()
         list_of_players = self.uefa_service.get_all_player_stats_from_uefa()
 
         # 3️⃣ update players in fapi ddb
@@ -65,12 +64,10 @@ class PlayerService:
         for player in list_of_players:
             self.ddb_repository.put_player_total_scores_ap2(player['name'], player['id'], player['goals'], player['assist'], player['team'], player['position'])
         ddb_end_time = time.time()
-        total_execution_end_time = time.time()
 
         self.measurement.number_of_players = len(list_of_players)
         self.measurement.average_time_per_player = (ddb_end_time - ddb_start_time) / len(list_of_players)
         self.measurement.ddb_execution_time = ddb_end_time - ddb_start_time
-        self.measurement.total_execution_time = total_execution_end_time - total_execution_start_time
 
         return "All players with access pattern two have been updated"
 
