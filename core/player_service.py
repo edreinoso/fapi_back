@@ -25,7 +25,6 @@ class PlayerService:
         print('test from player_service (update_ddb_table_with_ap1)')
         
         # get all players from uefa
-        total_execution_start_time = time.time()
         list_of_players = self.uefa_service.get_all_player_matches_stats_from_uefa()
 
 
@@ -33,24 +32,23 @@ class PlayerService:
         # update player matches in ddb
         for player in list_of_players:
             for matches in range(0,len(player['fixtures'])):
-                match_id = player[matches]['mId']
-                goals_scored = player[matches]['goals_scored']
-                assists = player[matches]['assists']
-                match_date = player[matches]['date_time']
+
+                player_name = player['player_name']
+                match_id = player['fixtures'][matches]['match_id']
+                goals_scored = player['fixtures'][matches]['goals_scored']
+                assists = player['fixtures'][matches]['assists']
+                match_date = player['fixtures'][matches]['date_time']
 
                 if ap == 'ap1':
-                    self.ddb_repository.put_player_point_per_match_ap1(player['name'], match_id, goals_scored, assists, match_date)
+                    self.ddb_repository.put_player_point_per_match_ap1(player_name, match_id, goals_scored, assists, match_date)
                 elif ap == 'ap3':
-                    self.ddb_repository.put_matches_stats_ap3(player['name'], match_id, goals_scored, assists, player['position'], match_date)
+                    self.ddb_repository.put_matches_stats_ap3(player_name, match_id, goals_scored, assists, player['position'], match_date)
 
         ddb_end_time = time.time()
-        total_execution_end_time = time.time()
         
         self.measurement.number_of_players = len(list_of_players)
         self.measurement.average_time_per_player = (ddb_end_time - ddb_start_time) / len(list_of_players)
-        self.measurement.uefa_execution_time = uefa_end_time - uefa_start_time
         self.measurement.ddb_execution_time = ddb_end_time - ddb_start_time
-        self.measurement.total_execution_time = total_execution_end_time - total_execution_start_time
 
     def update_ddb_table_with_ap2(self, remove_ddb_table: str) -> str:
         # 1️⃣ delete ddb table
