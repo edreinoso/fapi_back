@@ -22,9 +22,12 @@ class UEFAService:
         for player in players_data:
             fixtures, stats = self.uefa_repository.get_all_matches_per_player_stats(player['id'])
             player_name = player['name']
+            player_position = player['position']
+            player_id = player['id']
             
-            if player_name not in players_matches_dict:
-                players_matches_dict[player_name] = {'player_name': player_name, 'fixtures': []}
+            players_matches_dict[player_id] = {'player_id': player_id, 'fixtures': []}
+            players_matches_dict[player_id]['player_name'] = player_name
+            players_matches_dict[player_id]['position'] = player_position
 
             for match_index in range(len(fixtures)):
                 match_id = fixtures[match_index]['mId']
@@ -32,7 +35,7 @@ class UEFAService:
                 assists = stats[match_index]['gA']
                 match_date = fixtures[match_index]['dateTime']
                 
-                players_matches_dict[player_name]['fixtures'].append({
+                players_matches_dict[player_id]['fixtures'].append({
                     'match_id': match_id,
                     'goals_scored': goals_scored,
                     'assists': assists,
