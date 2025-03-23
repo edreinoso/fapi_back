@@ -2,7 +2,10 @@
 from typing import Protocol
 
 class DDBPlayerStatsRepository(Protocol):  # Port
-    def get_player_stats(self, player_name: str, date_condition: str, attributes: str) -> dict:
+    def get_player_stats(self, 
+                         player_name: str, 
+                         date_condition: str, 
+                         attributes: str) -> dict:
         """Fetch player statistics by ID"""
         pass
 
