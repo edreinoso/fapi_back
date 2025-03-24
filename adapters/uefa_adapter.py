@@ -16,7 +16,7 @@ class UEFAPlayerStatsRepository:
     
     def get_all_matches_per_player_stats(self, player_id: str) -> tuple[list, list]:
         conn = http.client.HTTPSConnection("gaming.uefa.com")
-        conn.request("GET", self.endpoint_url)
+        conn.request("GET", f"/en/uclfantasy/services/feeds/popupstats/popupstats_70_{player_id}.json")
         res = conn.getresponse()
         data = res.read()
         players_data = json.loads(data.decode("utf-8"))
