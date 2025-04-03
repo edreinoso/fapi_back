@@ -60,6 +60,26 @@ class UEFAService:
             # Transform the skill number to its description
             skill_description = self.skill_map.get(player.get('skill', 0), 'unknown')
 
+             
+            """'name': player.get('pDName', ''),
+            'rating': player.get('rating', ''),
+            'value': player.get('value', ''),
+            'total_points': player.get('totPts', ''),
+            'goals': player.get('gS', ''),
+            'assist': player.get('assist', ''),
+            'minutes_played': player.get('minsPlyd', ''),
+            'average_points': player.get('avgPlayerPts', ''),
+            'isActive': player.get('isActive', ''),
+            'team': player.get('cCode', ''),
+            'man_of_match': player.get('mOM', ''),
+            'position': skill_description,
+            'goals_conceded': player.get('gC'),
+            'yellow_cards': player.get('yC'),
+            'red cards': player.get('rC'),
+            'penalties_earned': player.get('pE'),
+            'balls_recovered': player.get('bR'),
+            """
+
             list_of_players.append({
                 'id': player.get('id', ''),
                 'name': player.get('pDName', '').lower(),
