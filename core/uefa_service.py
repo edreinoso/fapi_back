@@ -1,6 +1,7 @@
 import time
 from core.ports import UEFAPlayerStatsRepository
 from core.measurement_service import MeasurementService
+from data.ap2 import PlayerTotalScore
 
 class UEFAService:
     def __init__(self, uefa_repository: UEFAPlayerStatsRepository, measurement: MeasurementService): 
@@ -59,35 +60,8 @@ class UEFAService:
         for player in players_data:
             # Transform the skill number to its description
             skill_description = self.skill_map.get(player.get('skill', 0), 'unknown')
-
-             
-            """'name': player.get('pDName', ''),
-            'rating': player.get('rating', ''),
-            'value': player.get('value', ''),
-            'total_points': player.get('totPts', ''),
-            'goals': player.get('gS', ''),
-            'assist': player.get('assist', ''),
-            'minutes_played': player.get('minsPlyd', ''),
-            'average_points': player.get('avgPlayerPts', ''),
-            'isActive': player.get('isActive', ''),
-            'team': player.get('cCode', ''),
-            'man_of_match': player.get('mOM', ''),
-            'position': skill_description,
-            'goals_conceded': player.get('gC'),
-            'yellow_cards': player.get('yC'),
-            'red cards': player.get('rC'),
-            'penalties_earned': player.get('pE'),
-            'balls_recovered': player.get('bR'),
-            """
-
-            list_of_players.append({
-                'id': player.get('id', ''),
-                'name': player.get('pDName', '').lower(),
-                'goals': player.get('gS', ''),
-                'assist': player.get('assist', ''),
-                'team': player.get('tName', ''),
-                'position': skill_description
-            })
+            player_data = PlayerTotalScore(player, skill_description)
+            list_of_players.append(player_data)
         
         end_time = time.time()
 

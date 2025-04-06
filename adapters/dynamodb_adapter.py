@@ -1,9 +1,10 @@
 # adapters/dynamodb_adapter.py
+import boto3
 import time
 from datetime import datetime, timezone
 from decimal import Decimal
 from boto3.dynamodb.conditions import Key, Attr
-import boto3
+from data.ap2 import PlayerTotalScore
 
 class DynamoDBPlayerStatsRepository:
     def __init__(self, table_name: str):
@@ -42,23 +43,10 @@ class DynamoDBPlayerStatsRepository:
         )
 
     def put_player_total_scores_ap2(self, 
-                                    player_name: str, 
-                                    player_id: str, 
-                                    goals: str, 
-                                    assists: str, 
-                                    team: str,
-                                    position: str) -> str:
+                                    player_data: PlayerTotalScore) -> str:
         """Writes a player's total score to DynamoDB."""
         self.table.put_item(
-            Item={
-                'PK': f'PLAYER#{player_name}',
-                'SK': 'TOTALS',
-                'player_id': player_id,
-                'goals': goals,
-                'assists': assists,
-                'team': team,
-                'position': position
-            }
+            Item=player_data.to_item()
         )
 
     def put_matches_stats_ap3(self, 

@@ -60,8 +60,8 @@ class PlayerService:
 
         # 3️⃣ update players in fapi ddb
         ddb_start_time = time.time()
-        for player in list_of_players:
-            self.ddb_repository.put_player_total_scores_ap2(player['name'], player['id'], player['goals'], player['assist'], player['team'], player['position'])
+        for player_data in list_of_players:
+            self.ddb_repository.put_player_total_scores_ap2(player_data)
         ddb_end_time = time.time()
 
         self.measurement.number_of_players = len(list_of_players)
