@@ -21,7 +21,7 @@ class UEFAService:
         players_data = self.get_all_player_stats_from_uefa()
 
         for player in players_data:
-            fixtures, stats = self.uefa_repository.get_all_matches_per_player_stats(player['id'])
+            fixtures, stats, points = self.uefa_repository.get_all_matches_per_player_stats(player['id'])
             player_name = player['name']
             player_position = player['position']
             player_id = player['id']
