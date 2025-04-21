@@ -45,7 +45,7 @@ class UEFAService:
         return list(players_matches_dict.values())
 
     def get_all_player_stats_from_uefa(self) -> list:
-        print("Retrieving all players from UEFA...")
+        print("\nRetrieving all players from UEFA...")
         start_time = time.time()
 
         list_of_players = []
