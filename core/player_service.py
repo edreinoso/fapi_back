@@ -22,6 +22,11 @@ class PlayerService:
         return datetime.strptime(source_date, "%m/%d/%y %I:%M:%S %p").strftime("%Y-%m-%d")
 
     def update_ddb_table_with_ap1(self, remove_ddb_table: str) -> str:
+        # 1️⃣ delete ddb table
+        if remove_ddb_table == 'y':
+            self.recreate_ddb_table()
+            time.sleep(10)
+                
         # get all players from uefa
         list_of_players = self.uefa_service.get_all_player_matches_stats_from_uefa()
 
