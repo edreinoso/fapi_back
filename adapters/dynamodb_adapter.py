@@ -49,26 +49,6 @@ class DynamoDBPlayerStatsRepository:
             Item=player_data.to_item()
         )
 
-    def put_matches_stats_ap3(self, 
-                              player_name: str, 
-                              match_id: str, 
-                              player_goals: str, 
-                              player_assists: str, 
-                              position: str,
-                              date_time: str) -> str:
-        """Writes match data including position info."""
-        self.table.put_item(
-            Item={
-                'PK': f'MATCH#{date_time}#{match_id}',
-                'SK': f'PLAYER#{player_name}',
-                'match_id': match_id,
-                'goals': player_goals,
-                'assists': player_assists,
-                'position': position,
-                'match_date': date_time
-            }
-        )
-    
     def put_measurement_items(self, 
                               execution_method: str, 
                               execution_location: str, 

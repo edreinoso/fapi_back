@@ -45,9 +45,8 @@ def main(event):
 
     # access pattern router
     ap_router = {
-        'ap1': lambda: player_service.update_ddb_table_with_ap1_and_ap3(ap_type), # update player total scores
+        'ap1': lambda: player_service.update_ddb_table_with_ap1(remove_ddb_table), # update player total scores
         'ap2': lambda: player_service.update_ddb_table_with_ap2(remove_ddb_table), # update player total scores
-        'ap3': lambda: player_service.update_ddb_table_with_ap1_and_ap3(ap_type), # update player total scores
     }
 
     if ap_type in ap_router:

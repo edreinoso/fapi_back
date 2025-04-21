@@ -21,7 +21,7 @@ class PlayerService:
     def transform_date(self, source_date):
         return datetime.strptime(source_date, "%m/%d/%y %I:%M:%S %p").strftime("%Y-%m-%d")
 
-    def update_ddb_table_with_ap1_and_ap3(self, ap: str) -> str:
+    def update_ddb_table_with_ap1(self, remove_ddb_table: str) -> str:
         # get all players from uefa
         list_of_players = self.uefa_service.get_all_player_matches_stats_from_uefa()
 
@@ -40,8 +40,6 @@ class PlayerService:
 
                 if ap == 'ap1':
                     self.ddb_repository.put_player_point_per_match_ap1(player_name, match_id, goals_scored, assists, match_date)
-                elif ap == 'ap3':
-                    self.ddb_repository.put_matches_stats_ap3(player_name, match_id, goals_scored, assists, player_position, match_date)
 
         ddb_end_time = time.time()
         
