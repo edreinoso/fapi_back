@@ -41,7 +41,7 @@ def main(event):
     # Initialize services
     measurement_service = MeasurementService(measurement_repository, MEMORY_CAPACITY, execution_environment, 'sequential', ap_type)
     uefa_service = UEFAService(uefa_repository, measurement_service)
-    player_service = PlayerService(dev_players_repository, uefa_service, measurement_service)
+    player_service = PlayerService(manual_players_repository, uefa_service, measurement_service)
 
     # access pattern router
     ap_router = {
