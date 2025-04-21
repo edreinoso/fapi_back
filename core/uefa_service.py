@@ -51,10 +51,11 @@ class UEFAService:
 
         for player in players_data:
             # Transform the skill number to its description
+            # if player.get('pDName') == 'Pedri': # this statement should be used as test
             skill_description = self.skill_map.get(player.get('skill', 0), 'unknown')
-            player_data = PlayerTotalScore(player, skill_description)
-            list_of_players.append(player_data)
-        
+            player_total_score = PlayerTotalScore(player, skill_description)
+            list_of_players.append(player_total_score)
+                      
         end_time = time.time()
 
         self.measurement.increment_uefa_execution_time(end_time - start_time)
