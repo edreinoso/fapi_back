@@ -2,6 +2,7 @@ import time
 from core.ports import UEFAPlayerStatsRepository
 from core.measurement_service import MeasurementService
 from data.ap2 import PlayerTotalScore
+from data.ap1 import PlayerMatchStats
 
 class UEFAService:
     def __init__(self, uefa_repository: UEFAPlayerStatsRepository, measurement: MeasurementService): 
@@ -21,27 +22,18 @@ class UEFAService:
         players_data = self.get_all_player_stats_from_uefa()
 
         for player in players_data:
-            fixtures, stats, points = self.uefa_repository.get_all_matches_per_player_stats(player['id'])
-            player_name = player['name']
-            player_position = player['position']
-            player_id = player['id']
+            fixtures, stats, points = self.uefa_repository.get_all_matches_per_player_stats(player.id)
+            player_name = player.name
+            player_position = player.position
+            player_id = player.id
             
             players_matches_dict[player_id] = {'player_id': player_id, 'fixtures': []}
             players_matches_dict[player_id]['player_name'] = player_name
             players_matches_dict[player_id]['position'] = player_position
 
             for match_index in range(len(fixtures)):
-                match_id = fixtures[match_index]['mId']
-                goals_scored = stats[match_index]['gS']
-                assists = stats[match_index]['gA']
-                match_date = fixtures[match_index]['dateTime']
-                
-                players_matches_dict[player_id]['fixtures'].append({
-                    'match_id': match_id,
-                    'goals_scored': goals_scored,
-                    'assists': assists,
-                    'date_time': match_date
-                })
+                player_match_stats = PlayerMatchStats(player_name, fixtures, stats, points, match_index)
+                players_matches_dict[player_id]['fixtures'].append(player_match_stats)
 
         end_time = time.time()
 

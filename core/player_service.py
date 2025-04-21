@@ -33,18 +33,8 @@ class PlayerService:
         ddb_start_time = time.time()
         # update player matches in ddb
         for player in list_of_players:
-            player_name = player['player_name']
-            player_position = player['position']
-            
-            for matches in range(0,len(player['fixtures'])):
-
-                match_id = player['fixtures'][matches]['match_id']
-                goals_scored = player['fixtures'][matches]['goals_scored']
-                assists = player['fixtures'][matches]['assists']
-                match_date = player['fixtures'][matches]['date_time']
-
-                if ap == 'ap1':
-                    self.ddb_repository.put_player_point_per_match_ap1(player_name, match_id, goals_scored, assists, match_date)
+            for player_match_stats in range(0,len(player['fixtures'])):
+                self.ddb_repository.put_player_point_per_match_ap1(player['fixtures'][player_match_stats])
 
         ddb_end_time = time.time()
         
