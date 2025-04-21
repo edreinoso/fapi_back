@@ -16,6 +16,7 @@ class UEFAService:
         }
 
     def get_all_player_matches_stats_from_uefa(self) -> list:
+        print("Retrieving all matches for players from UEFA...")
         start_time = time.time()
         
         players_matches_dict = {}
@@ -39,9 +40,12 @@ class UEFAService:
 
         self.measurement.increment_uefa_execution_time(end_time - start_time)
 
+        print('Finished retrieving all matches for the players from UEFA')
+
         return list(players_matches_dict.values())
 
     def get_all_player_stats_from_uefa(self) -> list:
+        print("Retrieving all players from UEFA...")
         start_time = time.time()
 
         list_of_players = []
@@ -59,5 +63,7 @@ class UEFAService:
         end_time = time.time()
 
         self.measurement.increment_uefa_execution_time(end_time - start_time)
+
+        print('Finished retrieving all players from UEFA')
 
         return list_of_players
