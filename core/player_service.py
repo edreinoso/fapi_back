@@ -21,27 +21,20 @@ class PlayerService:
     def transform_date(self, source_date):
         return datetime.strptime(source_date, "%m/%d/%y %I:%M:%S %p").strftime("%Y-%m-%d")
 
-    def update_ddb_table_with_ap1_and_ap3(self, ap: str) -> str:
+    def update_ddb_table_with_ap1(self, remove_ddb_table: str) -> str:
+        # 1️⃣ delete ddb table
+        if remove_ddb_table == 'y':
+            self.recreate_ddb_table()
+            time.sleep(10)
+                
         # get all players from uefa
         list_of_players = self.uefa_service.get_all_player_matches_stats_from_uefa()
 
         ddb_start_time = time.time()
         # update player matches in ddb
         for player in list_of_players:
-            player_name = player['player_name']
-            player_position = player['position']
-            
-            for matches in range(0,len(player['fixtures'])):
-
-                match_id = player['fixtures'][matches]['match_id']
-                goals_scored = player['fixtures'][matches]['goals_scored']
-                assists = player['fixtures'][matches]['assists']
-                match_date = player['fixtures'][matches]['date_time']
-
-                if ap == 'ap1':
-                    self.ddb_repository.put_player_point_per_match_ap1(player_name, match_id, goals_scored, assists, match_date)
-                elif ap == 'ap3':
-                    self.ddb_repository.put_matches_stats_ap3(player_name, match_id, goals_scored, assists, player_position, match_date)
+            for player_match_stats in range(0,len(player['fixtures'])):
+                self.ddb_repository.put_player_point_per_match_ap1(player['fixtures'][player_match_stats])
 
         ddb_end_time = time.time()
         
@@ -60,8 +53,8 @@ class PlayerService:
 
         # 3️⃣ update players in fapi ddb
         ddb_start_time = time.time()
-        for player in list_of_players:
-            self.ddb_repository.put_player_total_scores_ap2(player['name'], player['id'], player['goals'], player['assist'], player['team'], player['position'])
+        for player_data in list_of_players:
+            self.ddb_repository.put_player_total_scores_ap2(player_data)
         ddb_end_time = time.time()
 
         self.measurement.number_of_players = len(list_of_players)

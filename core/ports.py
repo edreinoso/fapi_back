@@ -1,5 +1,7 @@
 # core/ports.py
 from typing import Protocol
+from data.ap2 import PlayerTotalScore
+from data.ap1 import PlayerMatchStats
 
 class DDBPlayerStatsRepository(Protocol):  # Port
     def get_player_stats(self, 
@@ -11,33 +13,14 @@ class DDBPlayerStatsRepository(Protocol):  # Port
 
     # Access Pattern 1
     def put_player_point_per_match_ap1(self,
-                                       player_name: str,
-                                       match_id: str,
-                                       player_goals: str,
-                                       player_assists: str,
-                                       date_time: str) -> str:
+                                       player_data: PlayerMatchStats) -> str:
         """Update player point per match"""
         pass
 
     # Access Pattern 2
     def put_player_total_scores_ap2(self, 
-                               player_name: str, 
-                               player_id: str, 
-                               player_goals: str, 
-                               player_assists: str, 
-                               team: str, 
-                               position: str) -> str:
+                               player_data: PlayerTotalScore) -> str:
         """Update player total score"""
-        pass
-
-    # Access Pattern 3
-    def put_matches_stats_ap3(self, 
-                         player_name: str, 
-                         match_id: str, 
-                         player_goals: str, 
-                         player_assists: str, 
-                         date_time: str) -> str:
-        """Update match player"""
         pass
 
     def create_table(self, table_name: str):

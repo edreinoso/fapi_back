@@ -41,13 +41,12 @@ def main(event):
     # Initialize services
     measurement_service = MeasurementService(measurement_repository, MEMORY_CAPACITY, execution_environment, 'sequential', ap_type)
     uefa_service = UEFAService(uefa_repository, measurement_service)
-    player_service = PlayerService(dev_players_repository, uefa_service, measurement_service)
+    player_service = PlayerService(manual_players_repository, uefa_service, measurement_service)
 
     # access pattern router
     ap_router = {
-        'ap1': lambda: player_service.update_ddb_table_with_ap1_and_ap3(ap_type), # update player total scores
+        'ap1': lambda: player_service.update_ddb_table_with_ap1(remove_ddb_table), # update player total scores
         'ap2': lambda: player_service.update_ddb_table_with_ap2(remove_ddb_table), # update player total scores
-        'ap3': lambda: player_service.update_ddb_table_with_ap1_and_ap3(ap_type), # update player total scores
     }
 
     if ap_type in ap_router:

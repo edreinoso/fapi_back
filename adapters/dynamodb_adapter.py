@@ -1,9 +1,11 @@
 # adapters/dynamodb_adapter.py
+import boto3
 import time
 from datetime import datetime, timezone
 from decimal import Decimal
 from boto3.dynamodb.conditions import Key, Attr
-import boto3
+from data.ap2 import PlayerTotalScore
+from data.ap1 import PlayerMatchStats
 
 class DynamoDBPlayerStatsRepository:
     def __init__(self, table_name: str):
@@ -24,63 +26,19 @@ class DynamoDBPlayerStatsRepository:
         return response['Items']
     
     def put_player_point_per_match_ap1(self,
-                                       player_name: str,
-                                       match_id: str,
-                                       player_goals: str,
-                                       player_assists: str,
-                                       date_time: str) -> str:
+                                       player_data: PlayerMatchStats) -> str:
         """Writes an individual player's match stats."""
         self.table.put_item(
-            Item={
-                'PK': f'PLAYER#{player_name}',
-                'SK': f'MATCH#{date_time}#{match_id}',
-                'match_id': match_id,
-                'goals': player_goals,
-                'assists': player_assists,
-                'match_date': date_time
-            }
+            Item=player_data.to_item()
         )
 
     def put_player_total_scores_ap2(self, 
-                                    player_name: str, 
-                                    player_id: str, 
-                                    goals: str, 
-                                    assists: str, 
-                                    team: str,
-                                    position: str) -> str:
+                                    player_data: PlayerTotalScore) -> str:
         """Writes a player's total score to DynamoDB."""
         self.table.put_item(
-            Item={
-                'PK': f'PLAYER#{player_name}',
-                'SK': 'TOTALS',
-                'player_id': player_id,
-                'goals': goals,
-                'assists': assists,
-                'team': team,
-                'position': position
-            }
+            Item=player_data.to_item()
         )
 
-    def put_matches_stats_ap3(self, 
-                              player_name: str, 
-                              match_id: str, 
-                              player_goals: str, 
-                              player_assists: str, 
-                              position: str,
-                              date_time: str) -> str:
-        """Writes match data including position info."""
-        self.table.put_item(
-            Item={
-                'PK': f'MATCH#{date_time}#{match_id}',
-                'SK': f'PLAYER#{player_name}',
-                'match_id': match_id,
-                'goals': player_goals,
-                'assists': player_assists,
-                'position': position,
-                'match_date': date_time
-            }
-        )
-    
     def put_measurement_items(self, 
                               execution_method: str, 
                               execution_location: str, 

@@ -22,7 +22,8 @@ class UEFAPlayerStatsRepository:
         players_data = json.loads(data.decode("utf-8"))
         fixtures = players_data['data']['value']['fixtures']
         stats = players_data['data']['value']['stats']
-        return fixtures, stats
+        points = players_data['data']['value']['points']
+        return fixtures, stats, points
     
     # Players that are still participating in the tournament
     def get_current_player_stats():
