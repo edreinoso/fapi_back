@@ -26,7 +26,7 @@ package:
     - '!uv.lock'
     - '!README.md'
     - '!visualize_service.py'
-    - '!functions/querier.py'
+    - '!functions/fetcher.py'
     - '!.venv'
 
 layers:
@@ -37,7 +37,7 @@ layers:
 
 functions:
   ingestPlayersData:
-    handler: functions/ingerster.handler
+    handler: functions/ingester.handler
     memorySize: 256
     timeout: 600
     package:
