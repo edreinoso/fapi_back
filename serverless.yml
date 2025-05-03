@@ -17,7 +17,18 @@ provider:
 
 package:
   individually: true
-  
+  patterns:
+    - '!data.json'
+    - '!.serverlessignore'
+    - '!.python-version'
+    - '!serverless.yml'
+    - '!pyproject.toml'
+    - '!uv.lock'
+    - '!README.md'
+    - '!visualize_service.py'
+    - '!functions/querier.py'
+    - '!.venv'
+
 layers:
   sharedLib:
     path: src
