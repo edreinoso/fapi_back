@@ -39,7 +39,7 @@ def get_parameters(event=None) -> tuple[str, str, str]:
     
     return remove_ddb_table, ap_type, execution_environment
 
-def main(event):
+def ingest(event):
     remove_ddb_table, ap_type, execution_environment = get_parameters(event)
     print(f'{remove_ddb_table} {ap_type} {execution_environment}')
     
@@ -63,11 +63,11 @@ def main(event):
     measurement_service.update_ddb_with_runtime_measurement()
 
 def handler(event, context):
-    main(event)
+    ingest(event)
     return {
         "statusCode": 200,
         "body": "Success"
     }
 
 if __name__ == "__main__":
-    main()
+    ingest()
