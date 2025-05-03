@@ -1,5 +1,5 @@
 import time
-from core.ports import UEFAPlayerStatsRepository
+from src.ports.uefa_port import UEFAPlayerStatsRepository
 from core.measurement_service import MeasurementService
 from data.ap2 import PlayerTotalScore
 from data.ap1 import PlayerMatchStats

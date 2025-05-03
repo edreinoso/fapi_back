@@ -1,5 +1,5 @@
 import datetime
-from core.ports import DDBPlayerStatsRepository
+from src.ports.ddb_port import DDBPlayerStatsRepository
 
 class MeasurementService:
     def __init__(self, measurement_repository: DDBPlayerStatsRepository, memory_capacity: int, execution_location: str, execution_method: str, access_pattern: str):
