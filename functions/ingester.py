@@ -1,3 +1,4 @@
+import os
 import sys
 # application/cli.py
 from adapters.dynamodb_adapter import DynamoDBPlayerStatsRepository
@@ -6,13 +7,15 @@ from core.player_service import PlayerService
 from core.uefa_service import UEFAService
 from core.measurement_service import MeasurementService
 
+# Read table names from environment variables
+players_table_name = os.environ.get("PLAYERS_TABLE_NAME")
+measurement_table_name = os.environ.get("MEASUREMENT_TABLE_NAME")
+
 # Initialize repositories
 # players_repository = DynamoDBPlayerStatsRepository(table_name="manual-fapi-ddb")
-dev_players_repository = DynamoDBPlayerStatsRepository(table_name="dev-fapi-players-ddb")
-prd_players_repository = DynamoDBPlayerStatsRepository(table_name="prd-fapi-players-ddb")
+players_repository = DynamoDBPlayerStatsRepository(table_name=players_table_name)
+measurement_repository = DynamoDBPlayerStatsRepository(table_name=measurement_table_name)
 manual_players_repository = DynamoDBPlayerStatsRepository(table_name="manual-fapi-ddb")
-dev_measurement_repository = DynamoDBPlayerStatsRepository(table_name="dev-fapi-measurement-ddb")
-prd_measurement_repository = DynamoDBPlayerStatsRepository(table_name="prd-fapi-measurement-ddb")
 uefa_repository = UEFAPlayerStatsRepository(endpoint_url="/en/uclfantasy/services/feeds/players/players_70_en_9.json")
 
 MEMORY_CAPACITY = 256
@@ -41,9 +44,9 @@ def main(event):
     print(f'{remove_ddb_table} {ap_type} {execution_environment}')
     
     # Initialize services
-    measurement_service = MeasurementService(prd_measurement_repository, MEMORY_CAPACITY, execution_environment, 'sequential', ap_type)
+    measurement_service = MeasurementService(measurement_repository, MEMORY_CAPACITY, execution_environment, 'sequential', ap_type)
     uefa_service = UEFAService(uefa_repository, measurement_service)
-    player_service = PlayerService(prd_players_repository, uefa_service, measurement_service)
+    player_service = PlayerService(players_repository, uefa_service, measurement_service)
 
     # access pattern router
     ap_router = {

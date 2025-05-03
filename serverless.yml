@@ -14,6 +14,18 @@ provider:
       Resource:
         - arn:aws:dynamodb:${self:provider.region}:*:table/${opt:stage}-fapi-players-ddb
         - arn:aws:dynamodb:${self:provider.region}:*:table/${opt:stage}-fapi-measurement-ddb
+  environment:
+    STAGE: ${opt:stage, 'dev'}
+    PLAYERS_TABLE_NAME: ${self:custom.playersTable.${opt:stage, 'dev'}}
+    MEASUREMENT_TABLE_NAME: ${self:custom.measurementTable.${opt:stage, 'dev'}}
+
+custom:
+  playersTable:
+    dev: dev-fapi-players-ddb
+    prd: prd-fapi-players-ddb
+  measurementTable:
+    dev: dev-fapi-measurement-ddb
+    prd: prd-fapi-measurement-ddb
 
 package:
   individually: true
