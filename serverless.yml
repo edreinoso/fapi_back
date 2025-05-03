@@ -27,6 +27,7 @@ package:
     - '!README.md'
     - '!visualize_service.py'
     - '!functions/fetcher.py'
+    - '!functions/ingester.py'
     - '!.venv'
 
 layers:
@@ -42,7 +43,17 @@ functions:
     timeout: 600
     package:
       patterns:
-        - functions/ingerster.py
+        - functions/ingester.py
+    layers:
+      - { Ref: SharedLibLambdaLayer }
+  
+  fetchPlayersData:
+    handler: functions/fetcher.handler
+    memorySize: 128
+    timeout: 60
+    package:
+      patterns:
+        - functions/fetcher.py
     layers:
       - { Ref: SharedLibLambdaLayer }
 
