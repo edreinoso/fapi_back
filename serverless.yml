@@ -15,11 +15,25 @@ provider:
         - arn:aws:dynamodb:${self:provider.region}:*:table/${opt:stage}-fapi-players-ddb
         - arn:aws:dynamodb:${self:provider.region}:*:table/${opt:stage}-fapi-measurement-ddb
 
+package:
+  individually: true
+  
+layers:
+  sharedLib:
+    path: src
+    compatibleRuntimes:
+      - python3.11
+
 functions:
   ingestPlayersData:
-    handler: main.handler
+    handler: functions/ingerster.handler
     memorySize: 256
     timeout: 600
+    package:
+      patterns:
+        - functions/ingerster.py
+    layers:
+      - { Ref: SharedLibLambdaLayer }
 
 resources:
   Resources:
