@@ -1,6 +1,6 @@
 # core/player_service.py
 import time
-from src.ports.ddb_port import DDBPlayerStatsRepository
+from ports.ddb_port import DDBPlayerStatsRepository
 from core.measurement_service import MeasurementService
 from core.uefa_service import UEFAService
 from datetime import datetime, timezone

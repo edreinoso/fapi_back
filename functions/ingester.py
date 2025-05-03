@@ -1,10 +1,10 @@
 import sys
 # application/cli.py
-from src.adapters.dynamodb_adapter import DynamoDBPlayerStatsRepository
-from src.adapters.uefa_adapter import UEFAPlayerStatsRepository
-from src.core.player_service import PlayerService
-from src.core.uefa_service import UEFAService
-from src.core.measurement_service import MeasurementService
+from adapters.dynamodb_adapter import DynamoDBPlayerStatsRepository
+from adapters.uefa_adapter import UEFAPlayerStatsRepository
+from core.player_service import PlayerService
+from core.uefa_service import UEFAService
+from core.measurement_service import MeasurementService
 
 # Initialize repositories
 # players_repository = DynamoDBPlayerStatsRepository(table_name="manual-fapi-ddb")
