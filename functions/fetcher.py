@@ -1,10 +1,5 @@
-from datetime import datetime, timezone
-from dynamo_handler import DynamoDBHandler
 import matplotlib.pyplot as plt
 import numpy as np
-
-# Initialize the handler
-ddb_handler = DynamoDBHandler('manual-fapi-ddb')
 
 def visualize_data_in_matplotlib(player_data: dict, attributes: str):
     plt.figure(figsize=(10, 5))
@@ -34,19 +29,7 @@ def visualize_data_in_matplotlib(player_data: dict, attributes: str):
 
     plt.show()
 
-def read_player_from_ddb(player_names: dict, attribute: str) -> dict:
-    player_data = {}
-    today = datetime.now(timezone.utc).strftime('%Y-%m-%d')  # Get today's date in YYYY-MM-DD format
-
-    print(today)
-
-    for name in player_names:
-        response = ddb_handler.query_player_data(name, attribute, today)
-        player_data[name] = response
-
-    return player_data
-
-if __name__ == "__main__":
+def main(event):
     """Query items in ddb database"""
     # 🌟 Welcoming message
     print("\n⚽ Welcome to the UEFA Fantasy Data Explorer! ⚽")

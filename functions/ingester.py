@@ -9,8 +9,10 @@ from core.measurement_service import MeasurementService
 # Initialize repositories
 # players_repository = DynamoDBPlayerStatsRepository(table_name="manual-fapi-ddb")
 dev_players_repository = DynamoDBPlayerStatsRepository(table_name="dev-fapi-players-ddb")
+prd_players_repository = DynamoDBPlayerStatsRepository(table_name="prd-fapi-players-ddb")
 manual_players_repository = DynamoDBPlayerStatsRepository(table_name="manual-fapi-ddb")
-measurement_repository = DynamoDBPlayerStatsRepository(table_name="dev-fapi-measurement-ddb")
+dev_measurement_repository = DynamoDBPlayerStatsRepository(table_name="dev-fapi-measurement-ddb")
+prd_measurement_repository = DynamoDBPlayerStatsRepository(table_name="prd-fapi-measurement-ddb")
 uefa_repository = UEFAPlayerStatsRepository(endpoint_url="/en/uclfantasy/services/feeds/players/players_70_en_9.json")
 
 MEMORY_CAPACITY = 256
@@ -39,9 +41,9 @@ def main(event):
     print(f'{remove_ddb_table} {ap_type} {execution_environment}')
     
     # Initialize services
-    measurement_service = MeasurementService(measurement_repository, MEMORY_CAPACITY, execution_environment, 'sequential', ap_type)
+    measurement_service = MeasurementService(prd_measurement_repository, MEMORY_CAPACITY, execution_environment, 'sequential', ap_type)
     uefa_service = UEFAService(uefa_repository, measurement_service)
-    player_service = PlayerService(manual_players_repository, uefa_service, measurement_service)
+    player_service = PlayerService(prd_players_repository, uefa_service, measurement_service)
 
     # access pattern router
     ap_router = {
@@ -56,3 +58,13 @@ def main(event):
 
     # Update dynamodb measurement table
     measurement_service.update_ddb_with_runtime_measurement()
+
+def handler(event, context):
+    main(event)
+    return {
+        "statusCode": 200,
+        "body": "Success"
+    }
+
+if __name__ == "__main__":
+    main()

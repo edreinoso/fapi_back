@@ -15,11 +15,47 @@ provider:
         - arn:aws:dynamodb:${self:provider.region}:*:table/${opt:stage}-fapi-players-ddb
         - arn:aws:dynamodb:${self:provider.region}:*:table/${opt:stage}-fapi-measurement-ddb
 
+package:
+  individually: true
+  patterns:
+    - '!data.json'
+    - '!.serverlessignore'
+    - '!.python-version'
+    - '!serverless.yml'
+    - '!pyproject.toml'
+    - '!uv.lock'
+    - '!README.md'
+    - '!visualize_service.py'
+    - '!functions/fetcher.py'
+    - '!functions/ingester.py'
+    - '!.venv'
+
+layers:
+  sharedLib:
+    path: src
+    compatibleRuntimes:
+      - python3.11
+
 functions:
   ingestPlayersData:
-    handler: main.handler
+    handler: functions/ingester.handler
     memorySize: 256
     timeout: 600
+    package:
+      patterns:
+        - functions/ingester.py
+    layers:
+      - { Ref: SharedLibLambdaLayer }
+  
+  fetchPlayersData:
+    handler: functions/fetcher.handler
+    memorySize: 128
+    timeout: 60
+    package:
+      patterns:
+        - functions/fetcher.py
+    layers:
+      - { Ref: SharedLibLambdaLayer }
 
 resources:
   Resources:

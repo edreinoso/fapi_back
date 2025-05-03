@@ -1,4 +1,4 @@
-# core/ports.py
+# core/ddb_port.py
 from typing import Protocol
 from data.ap2 import PlayerTotalScore
 from data.ap1 import PlayerMatchStats
@@ -46,13 +46,4 @@ class DDBPlayerStatsRepository(Protocol):  # Port
                               average_time_per_player: float,
                               memory_capacity: int):
         """Put measurement items"""
-        pass
-
-class UEFAPlayerStatsRepository(Protocol):
-    def get_all_matches_per_player_stats(self, player_id: str) -> dict:
-        """Fetch all matches per player statistics"""
-        pass
-    
-    def get_all_player_stats(self) -> dict:
-        """Fetch all player statistics"""
         pass
