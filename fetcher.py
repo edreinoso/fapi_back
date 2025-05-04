@@ -35,7 +35,7 @@ def fetch(event):
 
     # Initialize services
     player_service = PlayerService(players_repository, uefa_service=None, measurement=None)
-    return player_service.get_player_stats_from_ddb(player_name, player_attributes)
+    print(player_service.get_player_stats_from_ddb(player_name, player_attributes))
 
 
 def handler(event, context):
@@ -47,5 +47,10 @@ def handler(event, context):
     }
 
 if __name__ == "__main__":
-    fetch()
+    # Running locally
+    event = {
+        'player_name': 'pedri',
+        'player_attributes': 'assists'
+    }
+    fetch(event)
     
