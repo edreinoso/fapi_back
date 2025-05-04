@@ -1,7 +1,7 @@
 import os
 import sys
-from src.python.adapters.dynamodb_adapter import DynamoDBPlayerStatsRepository
-from src.python.core.player_service import PlayerService
+from adapters.dynamodb_adapter import DynamoDBPlayerStatsRepository
+from core.player_service import PlayerService
 
 players_table_name = os.environ.get("PLAYERS_TABLE_NAME")
 
@@ -13,16 +13,16 @@ def get_parameters(event=None) -> tuple[str, str]:
     if event:
         # Running in Lambda
         player_name = event.get('player_name')
-        player_attribute = event.get('player_attribute')
+        player_attributes = event.get('player_attributes')
     else:
         # Running local
         if len(sys.argv) < 4:
-            print('Usage: uv run <player_name> <player_attribute> <execution_environment>')
+            print('Usage: uv run <player_name> <player_attributes>')
             sys.exit(1)
         player_name = sys.argv[1]
-        player_attribute = sys.argv[2]
+        player_attributes = sys.argv[2]
     
-    return player_name, player_attribute
+    return player_name, player_attributes
 
 def fetch(event):
     """Query items in ddb database"""
@@ -30,12 +30,12 @@ def fetch(event):
     print("\n⚽ Welcome to the UEFA Fantasy Data Explorer! ⚽")
     print("You can retrieve stats for any player!\n")
 
-    player_name, player_attribute = get_parameters(event)
-    print(f'Player name: {player_name}, Player attribute: {player_attribute}')
+    player_name, player_attributes = get_parameters(event)
+    print(f'Player name: {player_name}, Player attribute: {player_attributes}')
 
     # Initialize services
-    player_service = PlayerService(players_repository)
-    return player_service.get_player_stats_from_ddb(player_name, player_attribute)
+    player_service = PlayerService(players_repository, uefa_service=None, measurement=None)
+    return player_service.get_player_stats_from_ddb(player_name, player_attributes)
 
 
 def handler(event, context):
