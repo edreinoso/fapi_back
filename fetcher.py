@@ -6,7 +6,7 @@ from core.player_service import PlayerService
 players_table_name = os.environ.get("PLAYERS_TABLE_NAME")
 
 # Initialize repositories
-players_repository = DynamoDBPlayerStatsRepository(table_name=players_table_name)
+players_repository = DynamoDBPlayerStatsRepository(table_name="dev-fapi-players-ddb")
 
 def get_parameters(event=None) -> tuple[str, str]:
     """Determine execution mode and fetch parameters accordingly."""
