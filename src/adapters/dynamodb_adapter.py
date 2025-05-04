@@ -18,9 +18,10 @@ class DynamoDBPlayerStatsRepository:
                          player_name: str, 
                          date_condition: str, 
                          attributes: str) -> dict:
+        print(f"Fetching player stats for {player_name} with attributes {attributes} and date condition {date_condition}")        
         response = self.table.query(
             KeyConditionExpression=Key('PK').eq(f'PLAYER#{player_name}') & Key('SK').begins_with('MATCH#'),
-            FilterExpression=Key('match_date').lte(date_condition),  # Only retrieve past matches
+            # FilterExpression=Key('match_date').lte(date_condition),  # Only retrieve past matches
             ProjectionExpression=attributes
         )
         return response['Items']
