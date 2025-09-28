@@ -3,6 +3,7 @@ import json
 import csv
 import logging
 import time
+from datetime import datetime
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -14,6 +15,17 @@ skill_map = {
     3: "midfielders",
     4: "attackers"
 }
+
+def get_day_of_week(date_str: str) -> str:
+    """
+    Takes a date string in the format 'MM/DD/YYYY HH:MM:SS'
+    and returns the day of the week (e.g., 'Tuesday').
+    """
+    # Parse the date string into a datetime object
+    dt = datetime.strptime(date_str, "%m/%d/%Y %H:%M:%S")
+    
+    # Return the full weekday name
+    return dt.strftime("%A")
 
 def get_uefa_players_data():
     start_time = time.time()
@@ -48,7 +60,8 @@ def get_uefa_players_data():
             'red cards': player.get('rC'),
             'penalties earned': player.get('pE'),
             'balls recovered': player.get('bR'),
-            'selected by (%)': player.get('selPer', '')
+            'selected by (%)': player.get('selPer', ''),
+            'match date': get_day_of_week(player['upcomingMatchesList'][0]['matchDate']) if player.get('upcomingMatchesList') else 'N/A'
         })
     
     end_time = time.time()
@@ -61,7 +74,7 @@ def csv_table(player_data):
     csv_file_path = 'players_data.csv'
 
     with open(csv_file_path, 'w', newline='', encoding='utf-8') as csvfile:
-        fieldnames = ['name', 'rating', 'value', 'total points', 'goals', 'assist', 'minutes played', 'average points', 'isActive', 'team', 'man of match', 'position', 'goals conceded', 'yellow cards', 'red cards', 'penalties earned', 'balls recovered', 'selected by (%)']
+        fieldnames = ['name', 'rating', 'value', 'total points', 'goals', 'assist', 'minutes played', 'average points', 'isActive', 'team', 'man of match', 'position', 'goals conceded', 'yellow cards', 'red cards', 'penalties earned', 'balls recovered', 'selected by (%)', 'match date']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
         writer.writeheader()
