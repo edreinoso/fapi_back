@@ -17,7 +17,7 @@ provider:
 
 functions:
   ingestPlayersData:
-    handler: ingester.handler
+    handler: main.handler
     memorySize: 256
     timeout: 600
 

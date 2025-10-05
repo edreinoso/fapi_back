@@ -13,8 +13,12 @@ class MeasurementService:
         self.access_pattern = access_pattern
         self.execution_method = execution_method
         self.execution_location = execution_location
+    
+    def increment_uefa_execution_time(self, uefa_execution_time: float):
+        self.uefa_execution_time += uefa_execution_time
 
     def update_ddb_with_runtime_measurement(self):
+        self.total_execution_time = self.uefa_execution_time + self.ddb_execution_time
         self.measurement_repository.put_measurement_items(
             self.execution_method,
             self.execution_location,
