@@ -229,6 +229,10 @@ def get_uefa_players_data():
         # Transform the skill number to its description
         skill_description = skill_map.get(player.get("skill", 0), "unknown")
 
+        for upcoming_match in player.get("upcomingMatchesList", []):
+            home_or_away = upcoming_match.get("tLoc")
+            opponent = upcoming_match.get("vsCCode")
+
         cleaned_player_data.append(
             {
                 "playerId": player.get("id", ""),
@@ -255,6 +259,8 @@ def get_uefa_players_data():
                     if player.get("upcomingMatchesList")
                     else "N/A"
                 ),
+                "home or away": home_or_away,
+                "opponent": opponent,
             }
         )
 
