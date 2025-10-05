@@ -1,7 +1,9 @@
+import argparse
 import csv
 import http.client
 import json
 import logging
+import sys
 import time
 from datetime import datetime
 
@@ -272,12 +274,13 @@ def get_uefa_players_data():
     return cleaned_player_data
 
 
-def csv_table(player_data):
+def csv_table(player_data, filename="players_data.csv"):
     # Write to a CSV file
-    csv_file_path = "players_data.csv"
+    csv_file_path = filename
 
     with open(csv_file_path, "w", newline="", encoding="utf-8") as csvfile:
         fieldnames = [
+            "playerId",
             "name",
             "rating",
             "value",
@@ -297,6 +300,8 @@ def csv_table(player_data):
             "balls recovered",
             "selected by (%)",
             "match date",
+            "home or away",
+            "opponent"
         ]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
@@ -307,30 +312,29 @@ def csv_table(player_data):
     print("CSV file created successfully.")
 
 
-def main():
+def process_fixtures(output_filename="uefa_opponents_table.csv"):
     """
-    Main function to process UEFA fixtures and create opponents table.
+    Process UEFA fixtures and create opponents table.
     """
     try:
-        # Fetch fixtures data from UEFA API
         logging.info("Starting UEFA fixtures processing...")
         fixtures_by_matchday = get_uefa_fixtures_data()
         
         if not fixtures_by_matchday:
             logging.error("No fixtures data retrieved. Exiting.")
-            return
+            return None
         
         # Create opponents table
         opponents_table = create_opponents_table(fixtures_by_matchday)
         
         # Export to CSV
-        export_opponents_to_csv(opponents_table)
+        export_opponents_to_csv(opponents_table, output_filename)
         
         # Display summary
         print("\n=== UEFA Champions League Opponents Table Created ===")
         print(f"Teams processed: {len([team for team in all_teams if team in opponents_table])}")
         print(f"Matchdays found: {len(fixtures_by_matchday)}")
-        print("CSV file 'uefa_opponents_table.csv' created successfully!")
+        print(f"CSV file '{output_filename}' created successfully!")
         
         # Display sample of the data
         print("\n=== Sample Data (first 3 teams) ===")
@@ -348,10 +352,107 @@ def main():
         raise
 
 
-if __name__ == "__main__":
-    # Run the complete opponents table generation
-    main()
+def process_players(output_filename="players_data.csv"):
+    """
+    Process UEFA players data and create players CSV.
+    """
+    try:
+        logging.info("Starting UEFA players processing...")
+        uefa_players_data = get_uefa_players_data()
+        
+        if not uefa_players_data:
+            logging.error("No players data retrieved. Exiting.")
+            return None
+        
+        # Export to CSV
+        csv_table(uefa_players_data, output_filename)
+        
+        # Display summary
+        print("\n=== UEFA Champions League Players Data Created ===")
+        print(f"Players processed: {len(uefa_players_data)}")
+        print(f"CSV file '{output_filename}' created successfully!")
+        
+        # Display sample of the data
+        print("\n=== Sample Players (first 5) ===")
+        for i, player in enumerate(uefa_players_data[:5], 1):
+            print(f"{i}. {player['name']} ({player['team']}) - {player['position']} - {player['rating']} rating")
+        
+        return uefa_players_data
+        
+    except Exception as e:
+        logging.error(f"Error processing UEFA players: {str(e)}")
+        raise
+
+
+def main():
+    """
+    Main function with command-line interface.
+    """
+    parser = argparse.ArgumentParser(
+        description="UEFA Champions League Fantasy Data Processor",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""Examples:
+  python main.py fixtures          # Process fixtures and create opponents table
+  python main.py players           # Process players data
+  python main.py fixtures --help   # Show fixtures-specific help
+        """
+    )
     
-    # Uncomment below if you also want player data
-    # uefa_players_data = get_uefa_players_data()
-    # csv_table(uefa_players_data)
+    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+    
+    # Fixtures command
+    fixtures_parser = subparsers.add_parser(
+        'fixtures', 
+        help='Process UEFA fixtures and create opponents table'
+    )
+    fixtures_parser.add_argument(
+        '--output', '-o',
+        default='uefa_opponents_table.csv',
+        help='Output CSV filename (default: uefa_opponents_table.csv)'
+    )
+    
+    # Players command
+    players_parser = subparsers.add_parser(
+        'players',
+        help='Process UEFA players data'
+    )
+    players_parser.add_argument(
+        '--output', '-o',
+        default='players_data.csv',
+        help='Output CSV filename (default: players_data.csv)'
+    )
+    
+    args = parser.parse_args()
+    
+    if not args.command:
+        parser.print_help()
+        sys.exit(1)
+    
+    try:
+        if args.command == 'fixtures':
+            print("🏆 Processing UEFA Champions League Fixtures...")
+            result = process_fixtures(args.output)
+            if result:
+                print(f"\n✅ Success! Check '{args.output}' for the opponents table.")
+            
+        elif args.command == 'players':
+            print("⚽ Processing UEFA Champions League Players...")
+            result = process_players(args.output)
+            if result:
+                print(f"\n✅ Success! Check '{args.output}' for the players data.")
+        
+        else:
+            print(f"Unknown command: {args.command}")
+            parser.print_help()
+            sys.exit(1)
+    
+    except KeyboardInterrupt:
+        print("\n⏹️  Process interrupted by user")
+        sys.exit(0)
+    except Exception as e:
+        print(f"\n❌ Error: {str(e)}")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
