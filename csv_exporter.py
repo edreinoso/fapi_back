@@ -92,6 +92,7 @@ class CSVExporter:
         try:
             # Define fieldnames for players CSV
             fieldnames = [
+                "playerId",
                 "name",
                 "rating",
                 "value",
@@ -111,6 +112,8 @@ class CSVExporter:
                 "balls recovered",
                 "selected by (%)",
                 "match date",
+                "opponent",
+                "home or away"
             ]
             
             with open(filename, "w", newline="", encoding="utf-8") as csvfile:
