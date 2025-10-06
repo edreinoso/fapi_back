@@ -5,7 +5,7 @@ import csv
 import logging
 from typing import Dict, List, Any
 
-from team_mapper import TeamMapper
+from src.core.team_mapper import TeamMapper
 
 
 class CSVExporter:

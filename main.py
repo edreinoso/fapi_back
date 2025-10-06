@@ -9,7 +9,7 @@ Usage:
   python main.py players         # Process players data
   python main.py --help          # Show help
 """
-from cli_app import main as cli_main
+from src.cli.app import main as cli_main
 
 
 if __name__ == "__main__":

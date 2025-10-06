@@ -6,10 +6,10 @@ import logging
 import sys
 from typing import Optional
 
-from uefa_api_client import UEFAApiClient
-from team_mapper import TeamMapper
-from data_processors import FixturesDataProcessor, OpponentsTableBuilder, PlayersDataProcessor
-from csv_exporter import CSVExporter
+from src.api.client import UEFAApiClient
+from src.core.team_mapper import TeamMapper
+from src.core.processors import FixturesDataProcessor, OpponentsTableBuilder, PlayersDataProcessor
+from src.exporters.csv_exporter import CSVExporter
 
 
 class CLIApp:
