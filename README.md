@@ -107,3 +107,31 @@ python test_paris.py
 ```
 
 This will use the `fixture_sample.json` file to test the opponents algorithm without making API calls.
+
+## Architecture
+
+The application now uses a clean, modular architecture with separated concerns:
+
+### 📁 **Core Classes**
+
+- **`UEFAApiClient`** (`uefa_api_client.py`) - Handles all API communication with UEFA
+- **`TeamMapper`** (`team_mapper.py`) - Maps API team names to standardized names
+- **`FixturesDataProcessor`** (`data_processors.py`) - Processes raw fixtures data
+- **`OpponentsTableBuilder`** (`data_processors.py`) - Builds opponents tables from fixtures
+- **`PlayersDataProcessor`** (`data_processors.py`) - Processes raw players data
+- **`CSVExporter`** (`csv_exporter.py`) - Handles all CSV export functionality
+- **`CLIApp`** (`cli_app.py`) - Main application controller and CLI interface
+
+### 🔧 **Entry Points**
+
+- **`main.py`** - Legacy entry point for backward compatibility
+- **`cli_app.py`** - Main modular CLI application
+- **`test_paris.py`** - Test script using sample data
+
+### 🏗️ **Benefits of New Architecture**
+
+- **Separation of Concerns** - Each class has a single responsibility
+- **Easy Testing** - Individual components can be tested in isolation
+- **Maintainability** - Changes to one component don't affect others
+- **Extensibility** - Easy to add new features or data sources
+- **Reusability** - Components can be reused in other applications
