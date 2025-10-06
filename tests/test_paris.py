@@ -5,14 +5,18 @@ using the sample fixture data
 """
 
 import json
-from main import team_name_mapping
+from src.core.team_mapper import TeamMapper
+
+# Initialize team mapper
+team_mapper = TeamMapper()
+team_name_mapping = team_mapper.get_mapping_dict()
 
 def test_paris_opponents():
     """Test finding Paris Saint-Germain's opponents from sample data"""
     print("=== Testing Paris Saint-Germain Opponents ===\n")
     
     # Load sample fixture data
-    with open("fixture_sample.json", "r", encoding="utf-8") as f:
+    with open("tests/fixtures/fixture_sample.json", "r", encoding="utf-8") as f:
         sample_data = json.load(f)
     
     paris_opponents = {}
