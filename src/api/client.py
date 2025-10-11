@@ -76,3 +76,17 @@ class UEFAApiClient:
         """
         self.logger.info("Fetching UEFA players data")
         return self._make_request(self.PLAYERS_ENDPOINT)
+    
+    def fetch_player_fantasy_data(self, player_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Fetch individual player fantasy data from UEFA API
+        
+        Args:
+            player_id: The player's ID
+            
+        Returns:
+            Raw player fantasy data from API
+        """
+        endpoint = f"/en/uclfantasy/services/feeds/popupstats/popupstats_80_{player_id}.json"
+        self.logger.info(f"Fetching fantasy data for player {player_id}")
+        return self._make_request(endpoint)

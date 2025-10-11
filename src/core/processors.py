@@ -120,8 +120,9 @@ class PlayersDataProcessor:
     # Skill mapping
     SKILL_MAP = {1: "goal keepers", 2: "defenders", 3: "midfielders", 4: "attackers"}
     
-    def __init__(self):
+    def __init__(self, api_client=None):
         self.logger = logging.getLogger(__name__)
+        self.api_client = api_client
     
     def _get_day_of_week(self, date_str: str) -> str:
         """
@@ -139,12 +140,13 @@ class PlayersDataProcessor:
         except (ValueError, TypeError):
             return "N/A"
     
-    def process_players(self, raw_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def process_players(self, raw_data: Dict[str, Any], include_fantasy_points: bool = False) -> List[Dict[str, Any]]:
         """
         Process raw players data into cleaned format
         
         Args:
             raw_data: Raw data from UEFA players API
+            include_fantasy_points: Whether to fetch and include matchday fantasy points
             
         Returns:
             List of processed player data dictionaries
@@ -163,7 +165,7 @@ class PlayersDataProcessor:
             # Transform the skill number to its description
             skill_description = self.SKILL_MAP.get(player.get("skill", 0), "unknown")
             
-            cleaned_player_data.append({
+            player_data = {
                 "playerId": player.get("id", ""),
                 "name": player.get("pDName", ""),
                 "rating": player.get("rating", ""),
@@ -188,7 +190,103 @@ class PlayersDataProcessor:
                     if player.get("upcomingMatchesList")
                     else "N/A"
                 ),
-            })
+            }
+            
+            # Fetch fantasy points data if requested and API client is available
+            if include_fantasy_points and self.api_client:
+                fantasy_data = self._get_player_fantasy_points(player.get("id", ""))
+                player_data.update(fantasy_data)
+            
+            cleaned_player_data.append(player_data)
         
         self.logger.info(f"Processed {len(cleaned_player_data)} players")
         return cleaned_player_data
+    
+    def _get_player_fantasy_points(self, player_id: str) -> Dict[str, int]:
+        """
+        Fetch and extract fantasy points for a single player
+        
+        Args:
+            player_id: The player's ID
+            
+        Returns:
+            Dictionary with matchday fantasy points (MD1, MD2, etc.)
+        """
+        fantasy_points = {}
+        
+        if not self.api_client or not player_id:
+            return fantasy_points
+        
+        try:
+            # Fetch player fantasy data from API
+            raw_fantasy_data = self.api_client.fetch_player_fantasy_data(player_id)
+            
+            if not raw_fantasy_data or "data" not in raw_fantasy_data:
+                self.logger.warning(f"No fantasy data found for player {player_id}")
+                return fantasy_points
+            
+            player_data = raw_fantasy_data["data"].get("value", {})
+            
+            # Get points from matchdayPoints array first, then fallback to points array
+            points_array = player_data.get("matchdayPoints", player_data.get("points", []))
+            
+            # Extract fantasy points for each matchday
+            for i, points_data in enumerate(points_array):
+                matchday_key = f"MD{i + 1}"
+                fantasy_points[matchday_key] = points_data.get("tPoints", 0)
+            
+            self.logger.info(f"Extracted fantasy points for player {player_id}: {fantasy_points}")
+            
+        except Exception as e:
+            self.logger.error(f"Error fetching fantasy data for player {player_id}: {str(e)}")
+        
+        return fantasy_points
+    
+    def extract_fantasy_points(self, raw_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Extract fantasy points data from player matchday data
+        
+        Args:
+            raw_data: Raw player data from UEFA API
+            
+        Returns:
+            Dictionary containing player info and fantasy points by matchday
+        """
+        if not raw_data or "data" not in raw_data or "value" not in raw_data["data"]:
+            self.logger.error("Invalid fantasy points data structure")
+            return {}
+        
+        player_data = raw_data["data"]["value"]
+        
+        # Extract basic player info
+        player_info = {
+            "player_id": player_data.get("id"),
+            "player_name": player_data.get("name", "Unknown Player"),
+            "team_id": player_data.get("teamId"),
+            "team_name": player_data.get("teamName"),
+            "skill_id": player_data.get("skillId"),
+            "position": self.SKILL_MAP.get(player_data.get("skillId", 0), "unknown")
+        }
+        
+        # Extract fantasy points from matchday data
+        fantasy_points = []
+        
+        # Get points from matchdayPoints array (if available)
+        matchday_points = player_data.get("points", [])
+        for i, points_data in enumerate(matchday_points):
+            matchday_num = i + 1  # MD1, MD2, etc.
+            fantasy_points.append({
+                "matchday": matchday_num,
+                "matchday_id": points_data.get("mdId", matchday_num),
+                "fantasy_points": points_data.get("tPoints", 0),
+                "match_id": points_data.get("mId", 0)
+            })
+        
+        
+        result = {
+            "player_info": player_info,
+            "matchday_points": fantasy_points,
+        }
+        
+        self.logger.info(f"Extracted fantasy points for player {player_info['player_id']}: {total_points} total points across {len(fantasy_points)} matchdays")
+        return result

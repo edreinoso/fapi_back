@@ -30,7 +30,7 @@ class CLIApp:
         self.team_mapper = TeamMapper()
         self.fixtures_processor = FixturesDataProcessor(self.team_mapper)
         self.opponents_builder = OpponentsTableBuilder(self.team_mapper)
-        self.players_processor = PlayersDataProcessor()
+        self.players_processor = PlayersDataProcessor(self.api_client)
         self.csv_exporter = CSVExporter(self.team_mapper)
         self.dynamodb_exporter = DynamoDBExporter()
 
@@ -182,8 +182,8 @@ class CLIApp:
                 self.logger.error("Failed to fetch players data")
                 return False
 
-            # Process players
-            players_data = self.players_processor.process_players(raw_data)
+            # Process players with fantasy points
+            players_data = self.players_processor.process_players(raw_data, include_fantasy_points=True)
             if not players_data:
                 self.logger.error("No players data to process")
                 return False
