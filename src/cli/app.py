@@ -91,8 +91,8 @@ class CLIApp:
         )
         players_parser.add_argument(
             "--region",
-            default="us-east-1",
-            help="AWS region for DynamoDB (default: us-east-1)",
+            default="eu-central-1",
+            help="AWS region for DynamoDB (default: eu-central-1)",
         )
 
         return parser
@@ -160,7 +160,7 @@ class CLIApp:
         self,
         format_type: str,
         output_target: Optional[str] = None,
-        region: str = "us-east-1",
+        region: str = "eu-central-1",
     ) -> bool:
         """
         Process players command with support for multiple output formats
@@ -203,7 +203,7 @@ class CLIApp:
             elif format_type == "ddb":
                 table_name = output_target or "new-manual-fapi-ddb"
                 # Update DynamoDB exporter region if needed
-                if region != "us-east-1":
+                if region != "eu-central-1":
                     self.dynamodb_exporter.region_name = region
                     self.dynamodb_exporter._dynamodb = (
                         None  # Reset client for new region
@@ -276,7 +276,7 @@ class CLIApp:
                 success = self.process_players_command(
                     format_type=format_type,
                     output_target=parsed_args.output,
-                    region=getattr(parsed_args, "region", "us-east-1"),
+                    region=getattr(parsed_args, "region", "eu-central-1"),
                 )
 
                 if success:

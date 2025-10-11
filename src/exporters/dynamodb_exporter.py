@@ -12,7 +12,7 @@ from botocore.exceptions import ClientError, NoCredentialsError
 class DynamoDBExporter:
     """Handles exporting data to DynamoDB tables"""
 
-    def __init__(self, region_name: str = "us-east-1"):
+    def __init__(self, region_name: str = "eu-central-1"):
         self.region_name = region_name
         self.logger = logging.getLogger(__name__)
         self._dynamodb = None
