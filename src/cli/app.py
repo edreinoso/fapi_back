@@ -201,7 +201,7 @@ class CLIApp:
                     print(f"CSV file '{output_filename}' created successfully!")
 
             elif format_type == "ddb":
-                table_name = output_target or "uefa-players"
+                table_name = output_target or "new-manual-fapi-ddb"
                 # Update DynamoDB exporter region if needed
                 if region != "us-east-1":
                     self.dynamodb_exporter.region_name = region
