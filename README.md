@@ -32,15 +32,21 @@ A professional command-line application to fetch and process UEFA Champions Leag
 
 ```bash
 # Show main help
-python main.py --help
+./run.sh --help                    # Using clean wrapper script
+# OR
+uv run python main.py --help       # Direct execution
 
 # Process fixtures and create opponents table
-python main.py fixtures
+./run.sh fixtures
 # → Creates: uefa_opponents_table.csv
 
-# Process players data  
-python main.py players
+# Process players data to CSV (default)
+./run.sh players
 # → Creates: players_data.csv
+
+# Process players data to DynamoDB
+./run.sh players ddb
+# → Creates/updates: uefa-players table in DynamoDB
 ```
 
 ### Advanced Usage
