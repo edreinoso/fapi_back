@@ -51,12 +51,12 @@ class CLIApp:
             description="UEFA Champions League Fantasy Data Processor",
             formatter_class=argparse.RawDescriptionHelpFormatter,
             epilog="""Examples:
-  python main.py fixtures                    # Process fixtures and create opponents table
-  python main.py players                     # Process players data to CSV (default)
-  python main.py players csv                 # Process players data to CSV  
-  python main.py players ddb                 # Process players data to DynamoDB
-  python main.py players ddb -o my-table     # Export to custom DynamoDB table
-  python main.py players ddb --region eu-west-1  # Use different AWS region
+  uv run src/main.py fixtures                    # Process fixtures and create opponents table
+  uv run src/main.py players                     # Process players data to CSV (default)
+  uv run src/main.py players csv                 # Process players data to CSV
+  uv run src/main.py players ddb                 # Process players data to DynamoDB
+  uv run src/main.py players ddb -o my-table     # Export to custom DynamoDB table
+  uv run src/main.py players ddb --region eu-west-1  # Use different AWS region
         """,
         )
 
