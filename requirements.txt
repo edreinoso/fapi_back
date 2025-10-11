@@ -1,9 +1,11 @@
 # UEFA Champions League Fantasy Data Processor Requirements
 
-# No external dependencies required for the core application!
-# The application uses only Python standard library modules:
+# Core dependencies
+boto3>=1.26.0        # Required for DynamoDB export functionality
+
+# The core application also uses Python standard library modules:
 # - http.client (for API requests)
-# - json (for JSON parsing)
+# - json (for JSON parsing) 
 # - csv (for CSV export)
 # - logging (for application logging)
 # - argparse (for CLI interface)
@@ -11,6 +13,6 @@
 # - typing (for type hints)
 
 # Optional: For development and testing
-# pytest>=7.0.0  # Uncomment if you want to add unit tests
-# black>=22.0.0   # Uncomment if you want code formatting
-# flake8>=4.0.0   # Uncomment if you want linting
+# pytest>=7.0.0    # Uncomment if you want to add unit tests
+# black>=22.0.0     # Uncomment if you want code formatting
+# flake8>=4.0.0     # Uncomment if you want linting
