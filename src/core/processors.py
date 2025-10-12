@@ -180,6 +180,10 @@ class PlayersDataProcessor:
             # Transform the skill number to its description
             skill_description = self.SKILL_MAP.get(player.get("skill", 0), "unknown")
 
+            for upcoming_match in player.get("upcomingMatchesList", []):
+                home_or_away = upcoming_match.get("tLoc")
+                opponent = upcoming_match.get("vsCCode")
+
             player_data = {
                 "playerId": player.get("id", ""),
                 "name": player.get("pDName", ""),
@@ -205,6 +209,8 @@ class PlayersDataProcessor:
                     if player.get("upcomingMatchesList")
                     else "N/A"
                 ),
+                "home or away": home_or_away,
+                "opponent": opponent,
             }
 
             # Fetch fantasy points data if requested and API client is available
