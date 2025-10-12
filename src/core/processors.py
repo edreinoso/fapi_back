@@ -222,10 +222,15 @@ class PlayersDataProcessor:
             raw_fantasy_data = self.api_client.fetch_player_fantasy_data(player_id)
             
             if not raw_fantasy_data or "data" not in raw_fantasy_data:
-                self.logger.warning(f"No fantasy data found for player {player_id}")
+                # Player has no fantasy data (hasn't played), set default values
+                self._set_default_fantasy_points(fantasy_points)
                 return fantasy_points
             
-            player_data = raw_fantasy_data["data"].get("value", {})
+            player_data = raw_fantasy_data["data"].get("value")
+            if not player_data:
+                # Player data is None (hasn't played), set default values
+                self._set_default_fantasy_points(fantasy_points)
+                return fantasy_points
             
             # Get points from matchdayPoints array first, then fallback to points array
             points_array = player_data.get("matchdayPoints", player_data.get("points", []))
@@ -235,12 +240,28 @@ class PlayersDataProcessor:
                 matchday_key = f"MD{i + 1}"
                 fantasy_points[matchday_key] = points_data.get("tPoints", 0)
             
-            self.logger.info(f"Extracted fantasy points for player {player_id}: {fantasy_points}")
+            # If no points data found, set default values
+            if not fantasy_points:
+                self._set_default_fantasy_points(fantasy_points)
             
         except Exception as e:
-            self.logger.error(f"Error fetching fantasy data for player {player_id}: {str(e)}")
+            # Log error but continue with default values
+            self.logger.debug(f"Error fetching fantasy data for player {player_id}: {str(e)}")
+            self._set_default_fantasy_points(fantasy_points)
         
         return fantasy_points
+    
+    def _set_default_fantasy_points(self, fantasy_points: Dict[str, int]) -> None:
+        """
+        Set default fantasy points (0) for players who haven't played
+        
+        Args:
+            fantasy_points: Dictionary to populate with default values
+        """
+        # Set up to 8 matchdays with 0 points (can be adjusted as needed)
+        for i in range(1, 9):
+            matchday_key = f"MD{i}"
+            fantasy_points[matchday_key] = 0
     
     def extract_fantasy_points(self, raw_data: Dict[str, Any]) -> Dict[str, Any]:
         """
