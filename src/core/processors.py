@@ -329,7 +329,4 @@ class PlayersDataProcessor:
             "matchday_points": fantasy_points,
         }
 
-        self.logger.info(
-            f"Extracted fantasy points for player {player_info['player_id']}: {total_points} total points across {len(fantasy_points)} matchdays"
-        )
         return result
