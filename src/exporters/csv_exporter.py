@@ -90,8 +90,13 @@ class CSVExporter:
             return False
         
         try:
-            # Define fieldnames for players CSV
-            fieldnames = [
+            # Get all unique field names from players data
+            all_fields = set()
+            for player in players_data:
+                all_fields.update(player.keys())
+            
+            # Define base fieldnames for players CSV
+            base_fieldnames = [
                 "playerId",
                 "name",
                 "rating",
@@ -115,6 +120,13 @@ class CSVExporter:
                 "opponent",
                 "home or away"
             ]
+            
+            # Find MD (matchday) columns and sort them
+            md_fields = sorted([field for field in all_fields if field.startswith('MD') and field[2:].isdigit()], 
+                              key=lambda x: int(x[2:]))
+            
+            # Combine base fields with MD fields
+            fieldnames = base_fieldnames + md_fields
             
             with open(filename, "w", newline="", encoding="utf-8") as csvfile:
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
