@@ -14,6 +14,7 @@ from src.core.processors import (
     PlayersDataProcessor,
 )
 from src.core.team_mapper import TeamMapper
+from src.core.team_analyzer import TeamAnalyzer
 from src.exporters.csv_exporter import CSVExporter
 from src.exporters.dynamodb_exporter import DynamoDBExporter
 
@@ -33,6 +34,7 @@ class CLIApp:
         self.players_processor = PlayersDataProcessor(self.api_client)
         self.csv_exporter = CSVExporter(self.team_mapper)
         self.dynamodb_exporter = DynamoDBExporter()
+        self.team_analyzer = TeamAnalyzer(self.dynamodb_exporter)
 
     def setup_logging(self):
         """Configure logging for the application"""
@@ -57,6 +59,8 @@ class CLIApp:
   uv run src/main.py players ddb                 # Process players data to DynamoDB
   uv run src/main.py players ddb -o my-table     # Export to custom DynamoDB table
   uv run src/main.py players ddb --region eu-west-1  # Use different AWS region
+  uv run src/main.py team 3f10f14a-80b6-11f0-b138-750c902f7cf8  # Analyze your fantasy team
+  uv run src/main.py team <guid> -m 3 -j json/team.json  # Use matchday 3 with JSON fallback
         """,
         )
 
@@ -93,6 +97,40 @@ class CLIApp:
             "--region",
             default="eu-central-1",
             help="AWS region for DynamoDB (default: eu-central-1)",
+        )
+
+        # Team command
+        team_parser = subparsers.add_parser(
+            "team", help="Analyze your UEFA fantasy team"
+        )
+        team_parser.add_argument(
+            "user_guid",
+            help="Your UEFA fantasy user GUID (e.g., 3f10f14a-80b6-11f0-b138-750c902f7cf8)",
+        )
+        team_parser.add_argument(
+            "--matchday",
+            "-m",
+            type=int,
+            default=2,
+            help="Matchday ID (default: 2)",
+        )
+        team_parser.add_argument(
+            "--phase",
+            "-p",
+            type=int,
+            default=0,
+            help="Phase ID (default: 0)",
+        )
+        team_parser.add_argument(
+            "--table-name",
+            "-t",
+            default="new-manual-fapi-ddb",
+            help="DynamoDB table name (default: new-manual-fapi-ddb)",
+        )
+        team_parser.add_argument(
+            "--json-fallback",
+            "-j",
+            help="Path to JSON file as fallback if API fails",
         )
 
         return parser
@@ -293,6 +331,22 @@ class CLIApp:
                     return 0
                 else:
                     print("\n❌ Failed to process players.")
+                    return 1
+
+            elif parsed_args.command == "team":
+                print("🏆 Analyzing UEFA Champions League Fantasy Team...")
+                
+                try:
+                    self.team_analyzer.analyze_team(
+                        user_guid=parsed_args.user_guid,
+                        matchday_id=parsed_args.matchday,
+                        phase_id=parsed_args.phase,
+                        table_name=parsed_args.table_name,
+                        json_fallback_path=parsed_args.json_fallback
+                    )
+                    return 0
+                except Exception as e:
+                    print(f"\n❌ Error analyzing team: {str(e)}")
                     return 1
 
             else:
