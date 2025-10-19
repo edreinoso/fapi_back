@@ -59,7 +59,8 @@ class CLIApp:
   uv run src/main.py players ddb                 # Process players data to DynamoDB
   uv run src/main.py players ddb -o my-table     # Export to custom DynamoDB table
   uv run src/main.py players ddb --region eu-west-1  # Use different AWS region
-  uv run src/main.py team 3f10f14a-80b6-11f0-b138-750c902f7cf8  # Analyze your fantasy team
+  uv run src/main.py team 3f10f14a-80b6-11f0-b138-750c902f7cf8  # Export your fantasy team to CSV
+  uv run src/main.py team <guid> -o my_team_analysis.csv  # Export with custom filename
   uv run src/main.py team <guid> -m 3 -j json/team.json  # Use matchday 3 with JSON fallback
         """,
         )
@@ -131,6 +132,12 @@ class CLIApp:
             "--json-fallback",
             "-j",
             help="Path to JSON file as fallback if API fails",
+        )
+        team_parser.add_argument(
+            "--output",
+            "-o",
+            default="my_team.csv",
+            help="Output CSV filename (default: my_team.csv)",
         )
 
         return parser
@@ -337,14 +344,15 @@ class CLIApp:
                 print("🏆 Analyzing UEFA Champions League Fantasy Team...")
                 
                 try:
-                    self.team_analyzer.analyze_team(
+                    success = self.team_analyzer.analyze_team(
                         user_guid=parsed_args.user_guid,
                         matchday_id=parsed_args.matchday,
                         phase_id=parsed_args.phase,
                         table_name=parsed_args.table_name,
-                        json_fallback_path=parsed_args.json_fallback
+                        json_fallback_path=parsed_args.json_fallback,
+                        csv_filename=parsed_args.output
                     )
-                    return 0
+                    return 0 if success else 1
                 except Exception as e:
                     print(f"\n❌ Error analyzing team: {str(e)}")
                     return 1
