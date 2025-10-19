@@ -10,6 +10,8 @@ import urllib.parse
 from typing import Any, Dict, List, Optional
 
 from src.exporters.dynamodb_exporter import DynamoDBExporter
+from src.exporters.csv_exporter import CSVExporter
+from src.core.team_mapper import TeamMapper
 
 
 class TeamAnalyzer:
@@ -17,9 +19,10 @@ class TeamAnalyzer:
 
     BASE_HOST = "gaming.uefa.com"
 
-    def __init__(self, dynamodb_exporter: Optional[DynamoDBExporter] = None):
+    def __init__(self, dynamodb_exporter: Optional[DynamoDBExporter] = None, csv_exporter: Optional[CSVExporter] = None):
         self.logger = logging.getLogger(__name__)
         self.dynamodb_exporter = dynamodb_exporter or DynamoDBExporter()
+        self.csv_exporter = csv_exporter or CSVExporter(TeamMapper())
 
     def fetch_team_data(
         self, user_guid: str, matchday_id: int = 2, phase_id: int = 0
@@ -188,93 +191,21 @@ class TeamAnalyzer:
             player_info = self.get_player_info_from_dynamodb(player_id, table_name)
 
             if player_info:
-                # Use only DynamoDB data
-                combined_info = {
-                    "player_id": player_id,
-                    "name": player_info.get("name", "Unknown"),
-                    "position": player_info.get("position", "Unknown"),
-                    "team": player_info.get("team", "Unknown"),
-                    "rating": player_info.get("rating", "N/A"),
-                }
-                team_players.append(combined_info)
+                # Return all DynamoDB properties
+                team_players.append(player_info)
             else:
                 # Fallback with minimal info if not found in DynamoDB
-                combined_info = {
-                    "player_id": player_id,
+                fallback_info = {
+                    "playerId": str(player_id),
                     "name": f"Player {player_id} (Not found in DB)",
                     "position": "Unknown",
                     "team": "Unknown",
                     "rating": "N/A",
                 }
-                team_players.append(combined_info)
+                team_players.append(fallback_info)
 
         return team_players
 
-    def export_team_to_csv(
-        self,
-        team_data: Dict[str, Any],
-        team_players: List[Dict[str, Any]],
-        filename: str = "my_team.csv",
-    ) -> bool:
-        """
-        Export team players to CSV file with detailed information
-
-        Args:
-            team_data: Team data dictionary
-            team_players: List of player information dictionaries
-            filename: Output CSV filename
-
-        Returns:
-            True if export successful, False otherwise
-        """
-        try:
-            # Prepare detailed player data for CSV export
-            csv_data = []
-
-            for player in team_players:
-                # Create detailed player data similar to the players processor structure
-                player_data = {
-                    "playerId": player.get("player_id", ""),
-                    "name": player.get("name", ""),
-                    "rating": player.get("rating", ""),
-                    "value": player.get("value", ""),
-                    "total points": player.get(
-                        "overall_points", 0
-                    ),  # Using team-specific points
-                    "position": player.get("position", ""),
-                    "team": player.get("team", ""),
-                    "is_captain": player.get("is_captain", False),
-                    "minutes_in_game": player.get("minutes_in_game", 0),
-                }
-                csv_data.append(player_data)
-
-            # Define CSV fieldnames
-            fieldnames = [
-                "playerId",
-                "name",
-                "rating",
-                "value",
-                "total points",
-                "position",
-                "team",
-                "is_captain",
-                "minutes_in_game",
-            ]
-
-            # Write CSV file
-            with open(filename, "w", newline="", encoding="utf-8") as csvfile:
-                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-                writer.writeheader()
-                writer.writerows(csv_data)
-
-            self.logger.info(
-                f"Successfully exported {len(csv_data)} team players to {filename}"
-            )
-            return True
-
-        except Exception as e:
-            self.logger.error(f"Error exporting team to CSV: {str(e)}")
-            return False
 
     def analyze_team(
         self,
@@ -322,8 +253,8 @@ class TeamAnalyzer:
             print("❌ No players found")
             return False
 
-        # Export team to CSV
-        success = self.export_team_to_csv(team_data, team_players, csv_filename)
+        # Export team to CSV using CSVExporter
+        success = self.csv_exporter.export_players_data(team_players, csv_filename)
 
         if success:
             team_info = team_data.get("data", {}).get("value", {})
