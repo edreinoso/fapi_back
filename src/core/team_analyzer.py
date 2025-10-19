@@ -169,45 +169,32 @@ class TeamAnalyzer:
             return None
 
     def get_team_players_info(
-        self, team_data: Dict[str, Any], table_name: str = "new-manual-fapi-ddb"
+        self, player_ids: List[int], table_name: str = "new-manual-fapi-ddb"
     ) -> List[Dict[str, Any]]:
         """
-        Get complete player information for all team players
+        Get complete player information for given player IDs from DynamoDB
 
         Args:
-            team_data: Team data dictionary
+            player_ids: List of player IDs to lookup
             table_name: DynamoDB table name
 
         Returns:
             List of player information dictionaries
         """
-        player_ids = self.extract_player_ids(team_data)
         team_players = []
-
-        # Get team players data for additional context
-        team_players_data = (
-            team_data.get("data", {}).get("value", {}).get("playerid", [])
-        )
-        team_players_dict = {player.get("id"): player for player in team_players_data}
 
         for player_id in player_ids:
             # Get player info from DynamoDB
             player_info = self.get_player_info_from_dynamodb(player_id, table_name)
 
-            # Get team-specific player data
-            team_player_data = team_players_dict.get(player_id, {})
-
             if player_info:
-                # Combine DynamoDB info with team-specific data
+                # Use only DynamoDB data
                 combined_info = {
                     "player_id": player_id,
                     "name": player_info.get("name", "Unknown"),
                     "position": player_info.get("position", "Unknown"),
                     "team": player_info.get("team", "Unknown"),
                     "rating": player_info.get("rating", "N/A"),
-                    "value": team_player_data.get("value", "N/A"),
-                    "overall_points": team_player_data.get("overallpoints", 0),
-                    "minutes_in_game": team_player_data.get("minutesingame"),
                 }
                 team_players.append(combined_info)
             else:
@@ -218,10 +205,6 @@ class TeamAnalyzer:
                     "position": "Unknown",
                     "team": "Unknown",
                     "rating": "N/A",
-                    "value": team_player_data.get("value", "N/A"),
-                    "overall_points": team_player_data.get("overallpoints", 0),
-                    "is_captain": bool(team_player_data.get("iscaptain", 0)),
-                    "minutes_in_game": team_player_data.get("minutesingame"),
                 }
                 team_players.append(combined_info)
 
@@ -318,6 +301,8 @@ class TeamAnalyzer:
         """
         # Try to fetch team data from API first
         team_data = self.fetch_team_data(user_guid, matchday_id, phase_id)
+        # print(team_data)
+        # breakpoint()
 
         # If API fails and we have a fallback JSON file, use it
         if not team_data and json_fallback_path:
@@ -330,7 +315,8 @@ class TeamAnalyzer:
 
         # Get player information
         print("🔍 Fetching player information from database...")
-        team_players = self.get_team_players_info(team_data, table_name)
+        player_ids = self.extract_player_ids(team_data)
+        team_players = self.get_team_players_info(player_ids, table_name)
 
         if not team_players:
             print("❌ No players found")
