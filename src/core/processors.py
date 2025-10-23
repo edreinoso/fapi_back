@@ -154,14 +154,13 @@ class PlayersDataProcessor:
             return "N/A"
 
     def process_players(
-        self, raw_data: Dict[str, Any], include_fantasy_points: bool = False
+        self, raw_data: Dict[str, Any]
     ) -> List[Dict[str, Any]]:
         """
         Process raw players data into cleaned format
 
         Args:
             raw_data: Raw data from UEFA players API
-            include_fantasy_points: Whether to fetch and include matchday fantasy points
 
         Returns:
             List of processed player data dictionaries
@@ -213,8 +212,8 @@ class PlayersDataProcessor:
                 "opponent": opponent,
             }
 
-            # Fetch fantasy points data if requested and API client is available
-            if include_fantasy_points and self.api_client:
+            # Fetch fantasy points data if API client is available
+            if self.api_client:
                 fantasy_data = self._get_player_fantasy_points(player.get("id", ""))
                 player_data.update(fantasy_data)
 
