@@ -25,7 +25,7 @@ A comprehensive command-line application to fetch, process, and analyze UEFA Cha
 ### 📊 Export Options
 - **📊 CSV Export**: Export data to clean, well-formatted CSV files for analysis
 - **💾 DynamoDB Export**: Store player data in AWS DynamoDB for scalable cloud storage
-- **📁 Team CSV Export**: Export your personal fantasy team lineup to CSV
+- **📁 Team Export**: Export your personal fantasy team lineup to CSV or DynamoDB
 
 ### 🚀 Advanced Features
 - **🎯 Fantasy Points**: Individual matchday fantasy points (MD1, MD2, etc.) for each player
@@ -59,6 +59,10 @@ uv run main.py --help              # Direct execution
 # Analyze your fantasy team and export to CSV
 ./run.sh team 3f10f14a-80b6-11f0-b138-750c902f7cf8
 # → Creates: my_team.csv with your team lineup
+
+# Export your fantasy team to DynamoDB
+./run.sh team 3f10f14a-80b6-11f0-b138-750c902f7cf8 -m 3 -e my-fantasy-team
+# → Exports to DynamoDB table 'my-fantasy-team' (skips CSV)
 ```
 
 ### 🚀 Advanced Usage
@@ -79,12 +83,16 @@ uv run main.py --help              # Direct execution
 ./run.sh players ddb -o champions-data -t custom-table
 
 # 🎯 TEAM ANALYSIS
-# Analyze your team with custom output
+# Analyze your team with custom output (CSV)
 ./run.sh team <your-guid> --output my_team_analysis.csv
 ./run.sh team <your-guid> -o team_matchday3.csv --matchday 3
 
-# Use different AWS regions for DynamoDB
-./run.sh team <your-guid> --table-name my-table --region us-east-1
+# Export team to DynamoDB instead of CSV
+./run.sh team <your-guid> -m 3 --export-table my-fantasy-team
+./run.sh team <your-guid> --matchday 3 -e team-backup-table
+
+# Use different table for fetching player data
+./run.sh team <your-guid> --table-name my-players-table -e my-fantasy-team
 
 # Fallback to JSON file if API fails
 ./run.sh team <your-guid> --json-fallback json/my_team_backup.json
@@ -135,7 +143,10 @@ Ajax:
   - And much more...
 
 ### 🎯 Team Command
-- **Default**: `my_team.csv`
+- **Default**: `my_team.csv` (or DynamoDB table if using `-e` flag)
+- **Export Options**:
+  - CSV: Use default or specify with `-o` flag
+  - DynamoDB: Use `-e` flag with table name (skips CSV export)
 - **Content**: Your personal fantasy team lineup including:
   - Player ID, name, rating, value
   - Captain status, bench position
@@ -143,8 +154,9 @@ Ajax:
   - Starting eleven indicator
 
 ### 💾 DynamoDB Export
-- **Default table**: `new-manual-fapi-ddb`
-- **Content**: All player data stored in AWS DynamoDB
+- **Default table**: `new-manual-fapi-ddb` (for player data)
+- **Team export**: Use `-e <table-name>` flag to export your fantasy team
+- **Content**: All player data or team lineup stored in AWS DynamoDB
 - **Benefits**: Scalable cloud storage, queryable data, team collaboration
 
 ## 📊 Example Output
@@ -359,7 +371,7 @@ backend/
 - **🎯 Fantasy Points by Matchday**: Individual MD1, MD2, MD3... fantasy points for each player
 - **💾 DynamoDB Integration**: Export and store player data in AWS DynamoDB
 - **🎮 Team Analysis**: Analyze your personal UEFA fantasy team lineup
-- **📁 Team CSV Export**: Export your fantasy team to CSV with detailed stats
+- **📁 Team Export Options**: Export your fantasy team to CSV or DynamoDB
 - **🔄 Clean Execution**: Wrapper script prevents .pyc file generation
 - **🌐 Enhanced API Client**: Fetches individual player fantasy statistics
 - **⚙️ Dynamic CSV**: Automatically detects and includes new columns (like MD fields)
@@ -382,13 +394,16 @@ backend/
 | `fixtures` | Process fixtures and create opponents table | `./run.sh fixtures -o opponents.csv` |
 | `players csv` | Export players with fantasy points to CSV | `./run.sh players csv -o players.csv` |
 | `players ddb` | Export players to DynamoDB | `./run.sh players ddb --region eu-west-1` |
-| `team <guid>` | Analyze your fantasy team | `./run.sh team <guid> -o my_team.csv` |
+| `team <guid>` | Analyze and export your fantasy team (CSV) | `./run.sh team <guid> -o my_team.csv` |
+|| `team <guid> -e <table>` | Export your fantasy team to DynamoDB | `./run.sh team <guid> -e my-fantasy-team` |
 
 ### 🎁 Common Options
 
 | Option | Short | Description | Example |
 |--------|--------|-------------|----------|
 | `--output` | `-o` | Custom output filename | `-o my_file.csv` |
+| `--export-table` | `-e` | Export team to DynamoDB table | `-e my-fantasy-team` |
+| `--table-name` | `-t` | Source DynamoDB table for player data | `-t my-players-table` |
 | `--region` | | AWS region for DynamoDB | `--region us-east-1` |
 | `--matchday` | `-m` | Specific matchday for team | `-m 3` |
 | `--json-fallback` | `-j` | JSON fallback file | `-j backup.json` |
