@@ -256,6 +256,7 @@ class PlayersDataProcessor:
             points_array = player_data.get(
                 "matchdayPoints", player_data.get("points", [])
             )
+            points_array = player_data.get("points")
 
             # Extract fantasy points for each matchday
             for i, points_data in enumerate(points_array):
