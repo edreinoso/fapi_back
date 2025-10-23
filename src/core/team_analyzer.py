@@ -25,7 +25,7 @@ class TeamAnalyzer:
         self.csv_exporter = csv_exporter or CSVExporter(TeamMapper())
 
     def fetch_team_data(
-        self, user_guid: str, matchday_id: int = 2, phase_id: int = 0
+        self, user_guid: str, matchday_id, phase_id: int = 0
     ) -> Optional[Dict[str, Any]]:
         """
         Fetch team data from UEFA API with authentication headers
@@ -210,22 +210,26 @@ class TeamAnalyzer:
     def analyze_team(
         self,
         user_guid: str,
-        matchday_id: int = 2,
+        matchday_id: int = 3,
         phase_id: int = 0,
         table_name: str = "new-manual-fapi-ddb",
         json_fallback_path: Optional[str] = None,
         csv_filename: str = "my_team.csv",
+        export_to_dynamodb: bool = False,
+        dynamodb_table_name: Optional[str] = None,
     ) -> bool:
         """
-        Complete team analysis by fetching from API, cross-referencing with DynamoDB, and exporting to CSV
+        Complete team analysis by fetching from API, cross-referencing with DynamoDB, and exporting to CSV/DynamoDB
 
         Args:
             user_guid: User GUID for the team
             matchday_id: Matchday ID (default: 2)
             phase_id: Phase ID (default: 0)
-            table_name: DynamoDB table name
+            table_name: DynamoDB table name for fetching player data
             json_fallback_path: Optional path to JSON file if API fails
             csv_filename: Output CSV filename
+            export_to_dynamodb: Whether to export team to DynamoDB
+            dynamodb_table_name: Target DynamoDB table name for team export
 
         Returns:
             True if successful, False otherwise
@@ -253,15 +257,31 @@ class TeamAnalyzer:
             print("❌ No players found")
             return False
 
-        # Export team to CSV using CSVExporter
-        success = self.csv_exporter.export_players_data(team_players, csv_filename)
+        team_info = team_data.get("data", {}).get("value", {})
+        team_name = team_info.get("teamName", "Unknown Team")
 
-        if success:
-            team_info = team_data.get("data", {}).get("value", {})
-            team_name = team_info.get("teamName", "Unknown Team")
-            print(f"✅ Successfully exported team '{team_name}' to '{csv_filename}'")
-            print(f"📊 {len(team_players)} players exported")
+        # Export to DynamoDB if requested, otherwise export to CSV
+        if export_to_dynamodb and dynamodb_table_name:
+            print(f"📤 Exporting team to DynamoDB table '{dynamodb_table_name}'...")
+            ddb_success = self.dynamodb_exporter.export_team_data(
+                team_players, dynamodb_table_name
+            )
+            
+            if ddb_success:
+                print(f"✅ Successfully exported team '{team_name}' to DynamoDB table '{dynamodb_table_name}'")
+                print(f"📊 {len(team_players)} players exported")
+                return True
+            else:
+                print(f"❌ Failed to export team to DynamoDB table '{dynamodb_table_name}'")
+                return False
         else:
-            print("❌ Failed to export team to CSV")
+            # Export team to CSV using CSVExporter
+            success = self.csv_exporter.export_players_data(team_players, csv_filename)
 
-        return success
+            if success:
+                print(f"✅ Successfully exported team '{team_name}' to '{csv_filename}'")
+                print(f"📊 {len(team_players)} players exported")
+            else:
+                print("❌ Failed to export team to CSV")
+
+            return success

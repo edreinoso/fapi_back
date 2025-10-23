@@ -240,3 +240,63 @@ class DynamoDBExporter:
         except ClientError as e:
             self.logger.error(f"Error scanning DynamoDB table '{table_name}': {e}")
             return []
+
+    def export_team_data(
+        self, team_players: List[Dict[str, Any]], table_name: str = "my-fantasy-team"
+    ) -> bool:
+        """
+        Export team players data to DynamoDB table
+
+        Args:
+            team_players: List of player data dictionaries for the team
+            table_name: Name of the DynamoDB table
+
+        Returns:
+            True if export successful, False otherwise
+        """
+        self.logger.info(
+            f"Exporting {len(team_players)} team players to DynamoDB table '{table_name}'"
+        )
+
+        if not team_players:
+            self.logger.error("No team players data to export")
+            return False
+
+        # Ensure table exists
+        if not self.create_players_table_if_not_exists(table_name):
+            return False
+
+        try:
+            table = self.dynamodb.Table(table_name)
+            successful_writes = 0
+            failed_writes = 0
+
+            # Write items to DynamoDB
+            with table.batch_writer() as batch:
+                for player in team_players:
+                    try:
+                        # Prepare item for DynamoDB
+                        item = self._prepare_player_item(player)
+                        batch.put_item(Item=item)
+                        successful_writes += 1
+
+                    except Exception as e:
+                        self.logger.warning(
+                            f"Failed to write player {player.get('name', 'unknown')}: {str(e)}"
+                        )
+                        failed_writes += 1
+
+            self.logger.info(
+                f"Successfully exported {successful_writes} team players to DynamoDB"
+            )
+            if failed_writes > 0:
+                self.logger.warning(f"Failed to export {failed_writes} team players")
+
+            return failed_writes == 0  # Return True only if all writes succeeded
+
+        except ClientError as e:
+            self.logger.error(f"Error writing to DynamoDB table '{table_name}': {e}")
+            return False
+        except Exception as e:
+            self.logger.error(f"Unexpected error during DynamoDB export: {str(e)}")
+            return False
