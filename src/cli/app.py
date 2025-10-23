@@ -62,6 +62,7 @@ class CLIApp:
   uv run src/main.py team 3f10f14a-80b6-11f0-b138-750c902f7cf8  # Export your fantasy team to CSV
   uv run src/main.py team <guid> -o my_team_analysis.csv  # Export with custom filename
   uv run src/main.py team <guid> -m 3 -j json/team.json  # Use matchday 3 with JSON fallback
+  uv run src/main.py team <guid> -m 3 -e my-fantasy-team  # Export team to DynamoDB table
         """,
         )
 
@@ -112,8 +113,7 @@ class CLIApp:
             "--matchday",
             "-m",
             type=int,
-            default=2,
-            help="Matchday ID (default: 2)",
+            help="Matchday ID",
         )
         team_parser.add_argument(
             "--phase",
@@ -126,7 +126,12 @@ class CLIApp:
             "--table-name",
             "-t",
             default="new-manual-fapi-ddb",
-            help="DynamoDB table name (default: new-manual-fapi-ddb)",
+            help="DynamoDB table name for fetching player data (default: new-manual-fapi-ddb)",
+        )
+        team_parser.add_argument(
+            "--export-table",
+            "-e",
+            help="DynamoDB table name to export your team to (e.g., my-fantasy-team)",
         )
         team_parser.add_argument(
             "--json-fallback",
@@ -228,7 +233,8 @@ class CLIApp:
                 return False
 
             # Process players with fantasy points
-            players_data = self.players_processor.process_players(raw_data, include_fantasy_points=True)
+            # This is the entry point of the application
+            players_data = self.players_processor.process_players(raw_data)
             if not players_data:
                 self.logger.error("No players data to process")
                 return False
@@ -316,7 +322,7 @@ class CLIApp:
                 if format_type == "ddb":
                     print("⚽ Processing UEFA Champions League Players for DynamoDB...")
                 else:
-                    print("⚽ Processing UEFA Champions League Players...")
+                    print("⚽ Processing UEFA Champions League Players for CSV export...")
 
                 success = self.process_players_command(
                     format_type=format_type,
@@ -346,11 +352,13 @@ class CLIApp:
                 try:
                     success = self.team_analyzer.analyze_team(
                         user_guid=parsed_args.user_guid,
-                        matchday_id=parsed_args.matchday,
+                        matchday_id=parsed_args.matchday or 3,
                         phase_id=parsed_args.phase,
                         table_name=parsed_args.table_name,
                         json_fallback_path=parsed_args.json_fallback,
-                        csv_filename=parsed_args.output
+                        csv_filename=parsed_args.output,
+                        export_to_dynamodb=bool(parsed_args.export_table),
+                        dynamodb_table_name=parsed_args.export_table,
                     )
                     return 0 if success else 1
                 except Exception as e:
