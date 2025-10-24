@@ -15,6 +15,7 @@ from src.core.processors import (
 )
 from src.core.team_mapper import TeamMapper
 from src.core.team_analyzer import TeamAnalyzer
+from src.core.league_analyzer import LeagueAnalyzer
 from src.exporters.csv_exporter import CSVExporter
 from src.exporters.dynamodb_exporter import DynamoDBExporter
 
@@ -35,6 +36,7 @@ class CLIApp:
         self.csv_exporter = CSVExporter(self.team_mapper)
         self.dynamodb_exporter = DynamoDBExporter()
         self.team_analyzer = TeamAnalyzer(self.dynamodb_exporter)
+        self.league_analyzer = LeagueAnalyzer()
 
     def setup_logging(self):
         """Configure logging for the application"""
@@ -63,7 +65,9 @@ class CLIApp:
   uv run src/main.py team <guid> -o my_team_analysis.csv  # Export with custom filename
   uv run src/main.py team <guid> -m 3 -j json/team.json  # Use matchday 3 with JSON fallback
   uv run src/main.py team <guid> -m 3 -e my-fantasy-team  # Export team to DynamoDB table
-        """,
+  uv run src/main.py league 30163308 -t my-fantasy-team  # Analyze league ownership for your team
+  uv run src/main.py league 30163308 -t my-fantasy-team -j json/players_in_league.json  # With JSON fallback
+        """
         )
 
         subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -143,6 +147,33 @@ class CLIApp:
             "-o",
             default="my_team.csv",
             help="Output CSV filename (default: my_team.csv)",
+        )
+
+        # League command
+        league_parser = subparsers.add_parser(
+            "league", help="Analyze league player ownership for your team"
+        )
+        league_parser.add_argument(
+            "league_id",
+            type=int,
+            help="League ID (e.g., 30163308)",
+        )
+        league_parser.add_argument(
+            "--team-table",
+            "-t",
+            required=True,
+            help="DynamoDB table name where your team is stored (e.g., my-fantasy-team)",
+        )
+        league_parser.add_argument(
+            "--json-fallback",
+            "-j",
+            help="Path to JSON file as fallback if API fails (e.g., json/players_in_league.json)",
+        )
+        league_parser.add_argument(
+            "--output",
+            "-o",
+            default="my_team_with_ownership.csv",
+            help="Output CSV filename (default: my_team_with_ownership.csv)",
         )
 
         return parser
@@ -286,6 +317,104 @@ class CLIApp:
             self.logger.error(f"Error processing players: {str(e)}")
             return False
 
+    def process_league_command(
+        self,
+        league_id: int,
+        team_table_name: str,
+        json_fallback_path: Optional[str] = None,
+        output_filename: str = "my_team_with_ownership.csv",
+    ) -> bool:
+        """
+        Process league command: analyze ownership and export team with ownership data
+
+        Args:
+            league_id: League ID to analyze
+            team_table_name: DynamoDB table containing your team
+            json_fallback_path: Optional path to JSON file if API fails
+            output_filename: Output CSV filename
+
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            self.logger.info(f"Starting league analysis for league {league_id}")
+
+            # Step 1: Fetch league data
+            print(f"🔍 Fetching league data for league ID {league_id}...")
+            league_data = self.league_analyzer.fetch_league_data(league_id)
+
+            # Fallback to JSON if API fails
+            if not league_data and json_fallback_path:
+                print("⚠️  API request failed, falling back to JSON file...")
+                league_data = self.league_analyzer.load_league_from_json_fallback(
+                    json_fallback_path
+                )
+
+            if not league_data:
+                self.logger.error("Failed to fetch league data")
+                return False
+
+            # Step 2: Scan team from DynamoDB first
+            print(f"\n🔍 Loading your team from DynamoDB table '{team_table_name}'...")
+            team_players = self.dynamodb_exporter.list_all_players(team_table_name)
+
+            if not team_players:
+                self.logger.error(f"No players found in table '{team_table_name}'")
+                print(f"❌ No team data found in table '{team_table_name}'")
+                print("   Make sure you've exported your team first using:")
+                print(f"   uv run main.py team <guid> -m 3 -e {team_table_name}")
+                return False
+
+            print(f"✅ Loaded {len(team_players)} players from your team")
+
+            # Step 3: Extract player IDs from your team
+            my_team_player_ids = [int(player.get("playerId", 0)) for player in team_players if player.get("playerId")]
+            print(f"📋 Extracted {len(my_team_player_ids)} player IDs from your team")
+
+            # Step 4: Calculate player ownership for YOUR players
+            print("\n📊 Calculating how many competitors own YOUR players...")
+            ownership_data = self.league_analyzer.calculate_player_ownership(league_data, my_team_player_ids)
+
+            if not ownership_data:
+                self.logger.error("Failed to calculate player ownership")
+                return False
+
+            league_name = (
+                league_data.get("data", {}).get("value", {}).get("leagueName", "Unknown League")
+            )
+            total_members = len(league_data.get("data", {}).get("value", {}).get("rest", []))
+            print(f"✅ Analyzed league '{league_name}' with {total_members} members")
+            print(f"📈 Calculated ownership for {len(ownership_data)} of your players")
+
+            # Step 5: Export to CSV with ownership data
+            print(f"\n📝 Exporting team with ownership data to '{output_filename}'...")
+            success = self.csv_exporter.export_players_data(
+                team_players, output_filename, ownership_data
+            )
+
+            if success:
+                print(f"\n✅ Successfully created '{output_filename}' with league ownership data!")
+                print(f"📊 {len(team_players)} players with ownership percentages")
+                
+                # Show ownership summary
+                print("\n=== Ownership Summary ===")
+                for player in team_players[:5]:  # Show first 5 players
+                    player_id = int(player.get("playerId", 0))
+                    ownership = ownership_data.get(player_id, 0.0)
+                    player_name = player.get("name", "Unknown")
+                    print(f"{player_name}: {ownership:.1f}% owned in league")
+                
+                if len(team_players) > 5:
+                    print(f"... and {len(team_players) - 5} more players")
+            else:
+                print("❌ Failed to export CSV")
+
+            return success
+
+        except Exception as e:
+            self.logger.error(f"Error processing league: {str(e)}")
+            return False
+
     def run(self, args: Optional[list] = None) -> int:
         """
         Run the CLI application
@@ -363,6 +492,27 @@ class CLIApp:
                     return 0 if success else 1
                 except Exception as e:
                     print(f"\n❌ Error analyzing team: {str(e)}")
+                    return 1
+
+            elif parsed_args.command == "league":
+                print("🏆 Analyzing League Ownership for Your Fantasy Team...")
+                
+                try:
+                    success = self.process_league_command(
+                        league_id=parsed_args.league_id,
+                        team_table_name=parsed_args.team_table,
+                        json_fallback_path=parsed_args.json_fallback,
+                        output_filename=parsed_args.output,
+                    )
+                    
+                    if success:
+                        print(f"\n✅ Success! Check '{parsed_args.output}' for your team with ownership data.")
+                        return 0
+                    else:
+                        print("\n❌ Failed to analyze league ownership.")
+                        return 1
+                except Exception as e:
+                    print(f"\n❌ Error analyzing league: {str(e)}")
                     return 1
 
             else:

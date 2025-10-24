@@ -3,7 +3,7 @@ CSV export functionality for UEFA Champions League data
 """
 import csv
 import logging
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 
 from src.core.team_mapper import TeamMapper
 
@@ -72,13 +72,14 @@ class CSVExporter:
             self.logger.error(f"Error exporting opponents table: {str(e)}")
             return False
     
-    def export_players_data(self, players_data: List[Dict[str, Any]], filename: str = "players_data.csv") -> bool:
+    def export_players_data(self, players_data: List[Dict[str, Any]], filename: str = "players_data.csv", ownership_data: Optional[Dict[int, float]] = None) -> bool:
         """
         Export players data to CSV file
         
         Args:
             players_data: List of player data dictionaries
             filename: Name of the output CSV file
+            ownership_data: Optional dictionary mapping player_id to ownership percentage
             
         Returns:
             True if export successful, False otherwise
@@ -121,12 +122,23 @@ class CSVExporter:
                 "home or away"
             ]
             
+            # Add ownership column if ownership data is provided
+            if ownership_data:
+                base_fieldnames.append("dutch league")
+            
             # Find MD (matchday) columns and sort them
             md_fields = sorted([field for field in all_fields if field.startswith('MD') and field[2:].isdigit()], 
                               key=lambda x: int(x[2:]))
             
             # Combine base fields with MD fields
             fieldnames = base_fieldnames + md_fields
+            
+            # Add ownership percentage to each player if provided
+            if ownership_data:
+                for player in players_data:
+                    player_id = int(player.get("playerId", 0))
+                    ownership_pct = ownership_data.get(player_id, 0.0)
+                    player["dutch league"] = f"{ownership_pct:.1f}%"
             
             with open(filename, "w", newline="", encoding="utf-8") as csvfile:
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
